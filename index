@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kadosh EV">
+  <meta name="theme-color" content="#0d0d0d">
+  <title>Kadosh EV</title>
+  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/kadoshcarregamento/kadosh/d4f52f23e72d21516bc1c69743b8cf78b63a93e1/Logo_kadosh512.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/kadoshcarregamento/kadosh/d4f52f23e72d21516bc1c69743b8cf78b63a93e1/Logo_kadosh512.png">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --k-green:#3BCDC0;--k-green-glow:rgba(59,205,192,.35);--k-green-dim:rgba(59,205,192,.12);
+  --bg:#0d0d0d;--bg-card:rgba(255,255,255,.04);--bg-input:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.09);--border-focus:rgba(59,205,192,.6);
+  --txt:#f0f0f0;--txt-sub:#888;--txt-dim:#555;
+  --red:#ff4d4d;--red-glow:rgba(255,77,77,.3);
+  --r:18px;--r-sm:12px;
+  --f-display:'Bebas Neue',sans-serif;--f-body:'Space Grotesk',sans-serif;
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);
+}
+html{height:100%;overflow:hidden;position:fixed;width:100%}
+body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.oculto{display:none!important}
+.tela{display:none;min-height:100%;flex-direction:column;position:relative;z-index:1}
+.tela.ativa{display:flex}
+#tela-login,#tela-senha{background:var(--bg);background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(59,205,192,.15) 0%,transparent 70%);align-items:stretch}
+.login-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(var(--sat) + 20px) 24px calc(var(--sab) + 16px);display:flex;flex-direction:column;align-items:center;gap:16px}
+.logo-block{text-align:center}
+.logo-img{width:100px;height:100px;border-radius:14px;object-fit:contain;display:block;margin:0 auto 16px;box-shadow:0 0 0 1px rgba(59,205,192,.2),0 0 32px rgba(59,205,192,.2),0 8px 32px rgba(0,0,0,.5);animation:logoPulse 4s ease-in-out infinite}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 0 1px rgba(59,205,192,.2),0 0 32px rgba(59,205,192,.2),0 8px 32px rgba(0,0,0,.5)}50%{box-shadow:0 0 0 1px rgba(59,205,192,.4),0 0 48px rgba(59,205,192,.35),0 8px 32px rgba(0,0,0,.5)}}
+.logo-sub{font-size:18px;font-weight:500;color:var(--txt-sub);letter-spacing:.08em;text-transform:uppercase}
+.card{width:100%;background:var(--bg-card);border-radius:var(--r);border:1px solid var(--border);padding:16px 16px;display:flex;flex-direction:column;gap:10px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.campo{display:flex;flex-direction:column;gap:8px}
+.campo label{font-size:14px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--k-green)}
+.campo input,.campo select{font-size:16px;font-family:var(--f-body);padding:11px 14px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--txt);outline:none;width:100%;-webkit-appearance:none;transition:border-color .2s,background .2s,box-shadow .2s}
+.campo input::placeholder{color:var(--txt-dim)}
+.campo input:focus,.campo select:focus{border-color:var(--border-focus);background:rgba(59,205,192,.06);box-shadow:0 0 0 3px rgba(59,205,192,.1)}
+.input-wrap{position:relative}
+.input-wrap input{padding-right:52px}
+.olho{position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;opacity:.4;padding:8px;-webkit-appearance:none}
+.campo-check{display:flex;align-items:center}
+.check-label{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--txt-sub);cursor:pointer}
+.check-label input[type=checkbox]{width:18px;height:18px;accent-color:var(--k-green);cursor:pointer}
+.banner-lembrado{background:var(--k-green-dim);border:1px solid rgba(59,205,192,.25);border-radius:var(--r-sm);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;font-size:16px;font-weight:600;color:var(--k-green)}
+.banner-trocar{background:none;border:none;color:var(--txt-sub);font-size:16px;cursor:pointer;text-decoration:underline;font-family:var(--f-body);padding:2px}
+.hint-pwa{font-size:16px;color:var(--txt-dim);text-align:center;max-width:280px;line-height:1.7;padding:0 8px}
+.btn-primary{width:100%;padding:13px 20px;background:var(--k-green);color:#0d0d0d;border:none;border-radius:var(--r-sm);font-family:var(--f-display);font-size:28px;letter-spacing:.04em;cursor:pointer;box-shadow:0 4px 20px var(--k-green-glow);transition:transform .12s,opacity .12s;-webkit-appearance:none;min-height:58px;display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-primary:active{transform:scale(.97);opacity:.9}
+.btn-primary:disabled{opacity:.4}
+.btn-secundario{width:100%;padding:13px 20px;background:var(--bg-input);color:var(--txt);border:1px solid var(--border);border-radius:var(--r-sm);font-family:var(--f-display);font-size:22px;letter-spacing:.04em;cursor:pointer;-webkit-appearance:none;min-height:52px;display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-secundario:active{opacity:.7}
+.btn-link{background:none;border:none;color:var(--txt-sub);font-size:14px;cursor:pointer;text-align:center;padding:4px;text-decoration:underline;font-family:var(--f-body);min-height:44px;display:flex;align-items:center;justify-content:center}
+.msg-erro{padding:14px 16px;border-radius:var(--r-sm);background:rgba(255,77,77,.1);border:1px solid rgba(255,77,77,.25);color:#ff8080;font-size:14px;font-weight:500;line-height:1.5}
+.msg-ok{padding:14px 16px;border-radius:var(--r-sm);background:var(--k-green-dim);border:1px solid rgba(59,205,192,.25);color:var(--k-green);font-size:14px;font-weight:500}
+.app-header{background:rgba(13,13,13,.9);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--border);padding-top:calc(var(--sat) + 12px);padding-bottom:12px;padding-left:calc(var(--sal) + 16px);padding-right:calc(var(--sar) + 16px);display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.hdr-logo-img{width:50px;height:50px;border-radius:10px;object-fit:contain;flex-shrink:0;border:1px solid rgba(59,205,192,.2)}
+.hdr-titulo{flex:1;font-family:var(--f-body);font-size:16px;font-weight:600;color:var(--txt-sub);line-height:1.4;letter-spacing:.02em}
+.hdr-titulo span{display:block;color:var(--k-green);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+.hdr-dir{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.btn-sair{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--txt-sub);border-radius:8px;padding:8px 14px;font-size:16px;cursor:pointer;font-family:var(--f-body);-webkit-appearance:none;min-height:36px;white-space:nowrap}
+.dash-main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px calc(var(--sab) + 28px);display:flex;flex-direction:column;gap:14px}
+.perfil-card{flex-direction:row!important;align-items:center;gap:14px;padding:18px 20px}
+.perfil-info{flex:1;min-width:0}
+.perfil-nome{font-size:20px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt)}
+.perfil-sub{font-size:16px;color:var(--txt-sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.perfil-apto{font-size:16px;color:var(--k-green);font-weight:600;margin-top:2px}
+.btn-senha-ico{width:42px;height:42px;flex-shrink:0;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-appearance:none}
+.helper-text-leitura{font-size:13px;color:var(--txt-sub);margin-top:6px;line-height:1.5}
+.leitura-vaga-display{font-family:var(--f-display);font-size:24px;letter-spacing:.03em;color:var(--k-green);background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px}
+.hist-vazio{font-size:14px;color:var(--txt-dim);text-align:center;padding:28px 0}
+.qr-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:28px 20px calc(var(--sab) + 28px);display:flex;flex-direction:column;align-items:center;gap:20px}
+.qr-titulo{font-family:var(--f-display);font-size:36px;letter-spacing:.04em;color:var(--txt);text-align:center}
+.qr-sub{font-size:24px;color:var(--txt-sub);margin-top:6px;line-height:1.6;max-width:300px;text-align:center}
+.qr-viewfinder-wrap{position:relative;width:100%;max-width:320px;border-radius:20px;overflow:hidden;background:#000;aspect-ratio:1/1;border:1px solid var(--border);box-shadow:0 0 0 1px rgba(59,205,192,.15),0 8px 40px rgba(0,0,0,.6)}
+.qr-corner{position:absolute;width:28px;height:28px;border-color:var(--k-green);border-style:solid;border-width:0;z-index:10;pointer-events:none}
+.qr-corner.tl{top:18px;left:18px;border-top-width:3px;border-left-width:3px;border-radius:4px 0 0 0}
+.qr-corner.tr{top:18px;right:18px;border-top-width:3px;border-right-width:3px;border-radius:0 4px 0 0}
+.qr-corner.bl{bottom:18px;left:18px;border-bottom-width:3px;border-left-width:3px;border-radius:0 0 0 4px}
+.qr-corner.br{bottom:18px;right:18px;border-bottom-width:3px;border-right-width:3px;border-radius:0 0 4px 0}
+.qr-scan-line{position:absolute;left:18px;right:18px;height:1px;background:linear-gradient(90deg,transparent,var(--k-green),transparent);animation:scanLine 2.2s ease-in-out infinite;box-shadow:0 0 12px var(--k-green),0 0 24px rgba(59,205,192,.3);z-index:10;pointer-events:none}
+@keyframes scanLine{0%{top:18px;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:calc(100% - 20px);opacity:0}}
+.qr-status{font-size:14px;font-weight:500;color:var(--txt-sub);text-align:center}
+#qr-reader{width:100%!important;height:100%!important;border:none!important}
+#qr-reader__scan_region{width:100%!important;height:100%!important}
+#qr-reader__scan_region video{width:100%!important;height:100%!important;object-fit:cover!important}
+#qr-reader__scan_region img{display:none!important}
+#qr-reader__dashboard,#qr-reader__header_message,#qr-reader__status_span{display:none!important}
+.adm-scroll,.tela-admin-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(var(--sab) + 28px);display:flex;flex-direction:column;gap:12px}
+.admin-user-item{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.admin-user-item.inativo{opacity:.45}
+.admin-user-info{flex:1;min-width:0}
+.admin-user-nome{font-size:15px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-user-sub{font-size:12px;color:var(--txt-sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-user-apto{font-size:13px;font-weight:700;color:var(--k-green);min-width:36px;text-align:center;flex-shrink:0}
+.btn-remover{background:rgba(255,77,77,.1);border:1px solid rgba(255,77,77,.25);color:#ff8080;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none;white-space:nowrap;flex-shrink:0}
+.btn-remover:active{opacity:.7}
+.admin-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px}
+.admin-modal-overlay.oculto{display:none!important}
+.admin-modal-box{background:#111;border:1px solid rgba(59,205,192,.2);border-radius:var(--r);padding:24px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow-y:auto}
+.admin-modal-titulo{font-family:var(--f-display);font-size:26px;letter-spacing:.04em;color:var(--k-green);text-align:center}
+.menu-admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-menu-admin{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;-webkit-appearance:none;color:var(--txt);text-align:center}
+.btn-menu-admin:active{opacity:.7;background:var(--k-green-dim)}
+.btn-menu-admin .ico{font-size:26px}
+.btn-menu-admin .lbl{font-size:13px;font-weight:600;line-height:1.3}
+.mes-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
+.mes-card-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:10px}
+.mes-card-header:active{background:rgba(255,255,255,.03)}
+.mes-nome{font-family:var(--f-display);font-size:20px;letter-spacing:.03em;color:var(--txt)}
+.mes-resumo{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.mes-consumo{font-size:15px;font-weight:700;color:var(--k-green)}
+.mes-custo{font-size:13px;color:var(--txt-sub)}
+.mes-aguardando{font-size:11px;color:#ffc800;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.mes-detalhe{display:none;border-top:1px solid var(--border);padding:10px 16px 14px}
+.mes-detalhe.aberto{display:block}
+.vaga-item{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;gap:6px}
+.vaga-item:last-child{border-bottom:none}
+.vaga-item-titulo{font-size:13px;font-weight:700;color:var(--k-green);letter-spacing:.04em}
+.vaga-item-linhas{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--txt-sub)}
+.vaga-item-linhas b{color:var(--txt);font-weight:600}
+.vaga-item-consumo{font-size:13px;font-weight:700;color:var(--txt)}
+.qr-gerado-wrap{background:#fff;border-radius:16px;padding:20px;display:flex;align-items:center;justify-content:center}
+.vaga-existente-badge{background:var(--bg-input);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--txt-sub)}
+.vagas-existentes-linha{display:flex;flex-wrap:wrap;gap:8px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:500}
+.overlay.oculto{display:none!important}
+.overlay-box{display:flex;flex-direction:column;align-items:center;gap:14px}
+.spinner{width:36px;height:36px;border:3px solid rgba(59,205,192,.2);border-top-color:var(--k-green);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.overlay-msg{color:var(--txt-sub);font-size:14px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="tela-login" class="tela ativa">
+  <div class="login-scroll">
+    <div class="logo-block">
+      <img src="https://raw.githubusercontent.com/kadoshcarregamento/kadosh/d4f52f23e72d21516bc1c69743b8cf78b63a93e1/Logo_kadosh512.png" class="logo-img" alt="Kadosh EV">
+      <p class="logo-sub">Carregamento de Veículos Elétricos</p>
+    </div>
+    <div class="card">
+      <div id="banner-lembrado" class="banner-lembrado oculto">
+        <span id="banner-nome">👋 Bem-vindo!</span>
+        <button class="banner-trocar" onclick="limparCredenciais()">Trocar</button>
+      </div>
+      <div class="campo" id="form-email-wrap">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email" inputmode="email">
+      </div>
+      <div class="campo"><label>Senha</label>
+        <div class="input-wrap">
+          <input type="password" id="login-senha" placeholder="••••••••" autocomplete="current-password">
+          <button class="olho" onclick="toggleSenha('login-senha',this)" type="button">👁</button>
+        </div>
+      </div>
+      <div class="campo-check">
+        <label class="check-label">
+          <input type="checkbox" id="lembrar-me" checked><span>Lembrar neste dispositivo</span>
+        </label>
+      </div>
+      <div id="login-erro" class="msg-erro oculto"></div>
+      <button class="btn-primary" id="btn-login" onclick="efetuarLogin()">
+        <span class="btn-txt">Entrar</span>
+        <span class="btn-load oculto">Aguarde...</span>
+      </button>
+      <button class="btn-link" onclick="mostrarTela('tela-senha')">Alterar senha</button>
+    </div>
+    <p class="hint-pwa" id="hint-pwa"></p>
+  </div>
+</div>
+
+<!-- ALTERAR SENHA -->
+<div id="tela-senha" class="tela">
+  <div class="login-scroll">
+    <div class="logo-block">
+      <img src="https://raw.githubusercontent.com/kadoshcarregamento/kadosh/d4f52f23e72d21516bc1c69743b8cf78b63a93e1/Logo_kadosh512.png" class="logo-img" alt="Kadosh EV">
+      <p class="logo-sub">Alterar Senha</p>
+    </div>
+    <div class="card">
+      <div class="campo"><label>Email</label><input type="email" id="s-email" placeholder="seu@email.com" inputmode="email"></div>
+      <div class="campo"><label>Senha atual</label><input type="password" id="s-atual" placeholder="••••••••"></div>
+      <div class="campo"><label>Nova senha</label><input type="password" id="s-nova" placeholder="Mínimo 6 caracteres"></div>
+      <div class="campo"><label>Confirmar senha</label><input type="password" id="s-conf" placeholder="Repita a nova senha"></div>
+      <div id="s-msg" class="oculto"></div>
+      <button class="btn-primary" onclick="mudarSenha()">Salvar nova senha</button>
+      <button class="btn-link" onclick="mostrarTela('tela-login')">← Voltar</button>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD (MORADOR) -->
+<div id="tela-dash" class="tela">
+  <header class="app-header">
+    <img src="https://raw.githubusercontent.com/kadoshcarregamento/kadosh/d4f52f23e72d21516bc1c69743b8cf78b63a93e1/Logo_kadosh512.png" class="hdr-logo-img" alt="Kadosh">
+    <div class="hdr-titulo">Sistema de registro<span>Carros Elétricos · Kadosh</span></div>
+    <div class="hdr-dir">
+      <button class="btn-sair oculto" id="btn-admin-hdr" onclick="mostrarTela('tela-admin')" style="background:rgba(59,205,192,.1);border-color:rgba(59,205,192,.3);color:var(--k-green)">⚙️</button>
+      <button class="btn-sair" onclick="fazerLogout()">Sair</button>
+    </div>
+  </header>
+  <main class="dash-main">
+    <div class="card perfil-card">
+      <div class="perfil-info">
+        <div class="perfil-nome" id="perfil-nome"></div>
+        <div class="perfil-sub" id="perfil-email"></div>
+        <div class="perfil-apto" id="perfil-apto"></div>
+      </div>
+      <button class="btn-senha-ico" onclick="mostrarTrocarSenha()">🔑</button>
+    </div>
+    <div class="card" style="gap:0">
+      <div style="font-family:var(--f-display);font-size:22px;letter-spacing:.04em;color:var(--txt);margin-bottom:14px">Meus Consumos</div>
+      <div id="consumos-lista"><div class="hist-vazio">Carregando...</div></div>
+    </div>
+    <p style="font-size:13px;color:var(--txt-sub);line-height:1.7;padding:0 4px">
+      O consumo de cada vaga é medido pelo administrador uma vez por mês. O valor cobrado só aparece depois que o administrador preenche o valor do kWh daquele mês.
+    </p>
+  </main>
+</div>
+
+<!-- SCANNER QR (ADMIN — REGISTRAR LEITURA) -->
+<div id="tela-qr" class="tela">
+  <header class="app-header">
+    <img src="https://raw.githubusercontent.com/kadoshcarregamento/kadosh/d4f52f23e72d21516bc1c69743b8cf78b63a93e1/Logo_kadosh512.png" class="hdr-logo-img" alt="Kadosh">
+    <div class="hdr-titulo">Registrar Leituras<span>Carros Elétricos · Kadosh</span></div>
+    <div class="hdr-dir"><button class="btn-sair" onclick="fecharScanner()">✔ Concluir</button></div>
+  </header>
+  <div class="qr-scroll">
+    <div>
+      <h2 class="qr-titulo">Escanear Vaga</h2>
+      <p class="qr-sub">Aponte a câmera para o QR code da vaga</p>
+    </div>
+    <div class="qr-viewfinder-wrap">
+      <div id="qr-reader"></div>
+      <div class="qr-corner tl"></div><div class="qr-corner tr"></div>
+      <div class="qr-corner bl"></div><div class="qr-corner br"></div>
+      <div class="qr-scan-line"></div>
+    </div>
+    <div id="qr-status" class="qr-status">Iniciando câmera...</div>
+    <div id="qr-erro" class="msg-erro oculto"></div>
+  </div>
+</div>
+
+<!-- REGISTRAR LEITURA (após escanear) -->
+<div id="tela-registrar-leitura" class="tela">
+  <header class="app-header">
+    <img src="https://raw.githubusercontent.com/kadoshcarregamento/kadosh/d4f52f23e72d21516bc1c69743b8cf78b63a93e1/Logo_kadosh512.png" class="hdr-logo-img" alt="Kadosh">
+    <div class="hdr-titulo">Registrar Leitura<span>Carros Elétricos · Kadosh</span></div>
+    <div class="hdr-dir"><button class="btn-sair" onclick="voltarParaScanner()">← Voltar</button></div>
+  </header>
+  <div class="login-scroll">
+    <div class="card">
+      <div class="campo"><label>Vaga</label><div class="leitura-vaga-display" id="rl-vaga">–</div></div>
+      <div class="campo"><label>Última leitura registrada</label><div class="leitura-vaga-display" id="rl-ultima">–</div></div>
+      <div class="campo">
+        <label>Leitura atual do medidor (kWh)</label>
+        <input type="text" id="rl-leitura" placeholder="Ex: 1.999,9" inputmode="decimal">
+        <div class="helper-text-leitura">Digite o valor exibido no medidor agora. Use vírgula para decimais.</div>
+      </div>
+      <div id="rl-erro" class="msg-erro oculto"></div>
+      <button class="btn-primary" id="btn-rl-enviar" onclick="enviarLeituraMensal()">
+        <span class="btn-txt">Salvar Leitura</span>
+        <span class="btn-load oculto">Aguarde...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN — MENU -->
+<div id="tela-admin" class="tela">
+  <header class="app-header">
+    <img src="https://raw.githubusercontent.com/kadoshcarregamento/kadosh/d4f52f23e72d21516bc1c69743b8cf78b63a93e1/Logo_kadosh512.png" class="hdr-logo-img" alt="Kadosh">
+    <div class="hdr-titulo">Administração<span>Carros Elétricos · Kadosh</span></div>
+    <div class="hdr-dir"><button class="btn-sair" onclick="mostrarTela('tela-dash')">← Voltar</button></div>
+  </header>
+  <div class="tela-admin-scroll">
+    <div class="menu-admin-grid">
+      <button class="btn-menu-admin" onclick="abrirScanner()"><span class="ico">📷</span><span class="lbl">Registrar Leituras</span></button>
+      <button class="btn-menu-admin" onclick="abrirTelaValorKwh()"><span class="ico">💰</span><span class="lbl">Valor do kWh do Mês</span></button>
+      <button class="btn-menu-admin" onclick="abrirTelaAdicionarVaga()"><span class="ico">➕</span><span class="lbl">Adicionar Vaga</span></button>
+      <button class="btn-menu-admin" onclick="abrirModalCadastro()"><span class="ico">👤</span><span class="lbl">Cadastrar Morador</span></button>
+    </div>
+    <div style="font-family:var(--f-display);font-size:20px;letter-spacing:.04em;color:var(--txt);margin-top:8px">Moradores</div>
+    <div id="admin-lista"><div class="hist-vazio">Carregando...</div></div>
+  </div>
+</div>
+
+<!-- ADMIN — VALOR DO KWH -->
+<div id="tela-valor-kwh" class="tela">
+  <header class="app-header">
+    <img src="https://raw.githubusercontent.com/kadoshcarregamento/kadosh/d4f52f23e72d21516bc1c69743b8cf78b63a93e1/Logo_kadosh512.png" class="hdr-logo-img" alt="Kadosh">
+    <div class="hdr-titulo">Valor do kWh do Mês<span>Carros Elétricos · Kadosh</span></div>
+    <div class="hdr-dir"><button class="btn-sair" onclick="mostrarTela('tela-admin')">← Voltar</button></div>
+  </header>
+  <div class="login-scroll">
+    <div class="card">
+      <div class="campo"><label>Mês de referência</label><div class="leitura-vaga-display" id="vk-mes">–</div></div>
+      <div class="campo"><label>Valor já definido (se houver)</label><div class="leitura-vaga-display" id="vk-atual">–</div></div>
+      <div class="campo">
+        <label>Valor do kWh (R$)</label>
+        <input type="text" id="vk-valor" placeholder="Ex: 0,85" inputmode="decimal" oninput="validarValorKwh()">
+      </div>
+      <div class="campo">
+        <label>Confirme o valor do kWh (R$)</label>
+        <input type="text" id="vk-valor-conf" placeholder="Repita o valor" inputmode="decimal" oninput="validarValorKwh()">
+      </div>
+      <div id="vk-erro" class="msg-erro oculto"></div>
+      <div id="vk-msg" class="msg-ok oculto"></div>
+      <button class="btn-primary" id="btn-vk-salvar" onclick="salvarValorKwh()" disabled>
+        <span class="btn-txt">Salvar Valor</span>
+        <span class="btn-load oculto">Aguarde...</span>
+      </button>
+    </div>
+    <p style="font-size:13px;color:var(--txt-sub);line-height:1.7;padding:0 4px">
+      Só é possível definir o valor do mês de cobrança atual. Meses já fechados ficam protegidos e não podem ser alterados por aqui.
+    </p>
+  </div>
+</div>
+
+<!-- ADMIN — ADICIONAR VAGA -->
+<div id="tela-adicionar-vaga" class="tela">
+  <header class="app-header">
+    <img src="https://raw.githubusercontent.com/kadoshcarregamento/kadosh/d4f52f23e72d21516bc1c69743b8cf78b63a93e1/Logo_kadosh512.png" class="hdr-logo-img" alt="Kadosh">
+    <div class="hdr-titulo">Adicionar Vaga<span>Carros Elétricos · Kadosh</span></div>
+    <div class="hdr-dir"><button class="btn-sair" onclick="mostrarTela('tela-admin')">← Voltar</button></div>
+  </header>
+  <div class="login-scroll" id="av-form-wrap">
+    <div class="card">
+      <div class="campo"><label>Apartamento</label>
+        <select id="av-apto" onchange="carregarVagasExistentes()">
+          <option value="">Selecione...</option>
+        </select>
+      </div>
+      <div class="campo oculto" id="av-existentes-wrap">
+        <label>Vagas já cadastradas</label>
+        <div class="vagas-existentes-linha" id="av-existentes"></div>
+      </div>
+      <div id="av-erro" class="msg-erro oculto"></div>
+      <button class="btn-primary" id="btn-av-salvar" onclick="salvarVagaNova()">
+        <span class="btn-txt">Adicionar Vaga</span>
+        <span class="btn-load oculto">Aguarde...</span>
+      </button>
+    </div>
+  </div>
+  <div class="login-scroll oculto" id="av-resultado-wrap">
+    <div class="card" style="align-items:center;text-align:center">
+      <div style="font-family:var(--f-display);font-size:26px;color:var(--k-green);letter-spacing:.04em" id="av-resultado-titulo">Vaga criada!</div>
+      <div class="qr-gerado-wrap" id="av-qr-container"></div>
+      <div class="leitura-vaga-display" id="av-resultado-texto">–</div>
+      <p style="font-size:13px;color:var(--txt-sub);line-height:1.6">Imprima este QR code e cole na vaga correspondente.</p>
+      <button class="btn-primary" onclick="fecharResultadoVaga()">➕ Adicionar Outra Vaga</button>
+      <button class="btn-link" onclick="mostrarTela('tela-admin')">Concluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CADASTRO MORADOR -->
+<div id="modal-cadastro" class="admin-modal-overlay oculto">
+  <div class="admin-modal-box">
+    <div class="admin-modal-titulo">Novo Morador</div>
+    <div class="campo"><label>Apartamento</label>
+      <select id="cad-apto">
+        <option value="">Selecione...</option>
+      </select>
+    </div>
+    <div class="campo"><label>Nome completo</label>
+      <input type="text" id="cad-nome" placeholder="Nome do morador">
+    </div>
+    <div class="campo"><label>Email</label>
+      <input type="email" id="cad-email" placeholder="email@exemplo.com" inputmode="email">
+    </div>
+    <div class="campo"><label>Confirmar email</label>
+      <input type="email" id="cad-email2" placeholder="Repita o email" inputmode="email">
+    </div>
+    <div id="cad-msg" class="oculto"></div>
+    <button class="btn-primary" id="btn-cad-salvar" onclick="cadastrarUsuario()" style="font-size:20px">
+      <span class="btn-txt">Cadastrar</span>
+      <span class="btn-load oculto">Aguarde...</span>
+    </button>
+    <button class="btn-link" onclick="fecharModalCadastro()">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL AÇÃO USUÁRIO -->
+<div id="modal-acao-usuario" class="admin-modal-overlay oculto">
+  <div class="admin-modal-box" style="gap:10px">
+    <div class="admin-modal-titulo" style="font-size:20px" id="modal-acao-titulo">Remover usuário</div>
+    <p style="font-size:14px;color:var(--txt-sub);text-align:center" id="modal-acao-sub"></p>
+    <button class="btn-primary" onclick="executarAcaoUsuario('desativar')" style="font-size:18px;background:var(--bg-input);color:var(--txt);border:1px solid var(--border);box-shadow:none">
+      Desativar acesso
+    </button>
+    <p style="font-size:12px;color:var(--txt-sub);text-align:center;margin-top:-6px">O usuário fica na base mas não consegue entrar</p>
+    <button class="btn-primary" onclick="executarAcaoUsuario('excluir')" style="font-size:18px;background:rgba(255,77,77,.1);color:#ff8080;border:1px solid rgba(255,77,77,.25);box-shadow:none">
+      Excluir (morador mudou)
+    </button>
+    <p style="font-size:12px;color:var(--txt-sub);text-align:center;margin-top:-6px">O histórico de consumo da vaga é preservado — pertence ao apartamento, não à pessoa</p>
+    <button class="btn-link" onclick="document.getElementById('modal-acao-usuario').classList.add('oculto')">Cancelar</button>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div id="overlay" class="overlay oculto">
+  <div class="overlay-box">
+    <div class="spinner"></div>
+    <div class="overlay-msg" id="overlay-msg">Aguarde...</div>
+  </div>
+</div>
+
+<script>
+var GAS_URL = 'https://script.google.com/macros/s/SUBSTITUA_PELO_SEU_DEPLOY_ID/exec';
+var App = { usuario:null };
+var LS_KEY = 'ev_charge_creds';
+var _qrScanner = null, _qrProcessing = false, _cbCounter = 0;
+
+function api(action, params) {
+  return new Promise(function(resolve, reject) {
+    var cbName = '_gasCb' + (++_cbCounter);
+    var timeout = setTimeout(function() { delete window[cbName]; var s=document.getElementById(cbName); if(s)s.remove(); reject(new Error('Timeout')); }, 90000);
+    window[cbName] = function(data) { clearTimeout(timeout); delete window[cbName]; var s=document.getElementById(cbName); if(s)s.remove(); resolve(data); };
+    var url = GAS_URL + '?action=' + encodeURIComponent(action) + '&payload=' + encodeURIComponent(JSON.stringify(params||{})) + '&callback=' + cbName;
+    var script = document.createElement('script');
+    script.id = cbName; script.src = url;
+    script.onerror = function() { clearTimeout(timeout); delete window[cbName]; script.remove(); reject(new Error('Falha ao contactar o servidor')); };
+    document.head.appendChild(script);
+  });
+}
+
+window.addEventListener('load', function() { mostrarTela('tela-login'); carregarCredenciais(); mostrarHintPWA(); });
+
+function salvarCredenciais(email, senha) { try { localStorage.setItem(LS_KEY, JSON.stringify({email:email,senha:senha,nome:App.usuario?App.usuario.nome:''})); } catch(e) {} }
+function carregarCredenciais() {
+  try {
+    var raw=localStorage.getItem(LS_KEY); if(!raw)return;
+    var cr=JSON.parse(raw); if(!cr||!cr.email)return;
+    document.getElementById('login-email').value=cr.email;
+    if(cr.nome){document.getElementById('banner-nome').textContent='👋 Bem-vindo, '+cr.nome.split(' ')[0]+'!';document.getElementById('banner-lembrado').classList.remove('oculto');document.getElementById('form-email-wrap').classList.add('oculto');}
+    if(cr.senha)document.getElementById('login-senha').value=cr.senha;
+  } catch(e) {}
+}
+function limparCredenciais() {
+  try{localStorage.removeItem(LS_KEY);}catch(e){}
+  document.getElementById('banner-lembrado').classList.add('oculto');
+  document.getElementById('form-email-wrap').classList.remove('oculto');
+  document.getElementById('login-email').value=''; document.getElementById('login-senha').value='';
+}
+function mostrarHintPWA() {
+  var h=document.getElementById('hint-pwa'),ua=navigator.userAgent;
+  if(window.navigator.standalone||window.matchMedia('(display-mode: standalone)').matches){h.textContent='App instalado!';return;}
+  if(/iPhone|iPad|iPod/.test(ua))h.textContent='Para instalar: Compartilhar → "Adicionar à Tela de Início"';
+  else if(/Android/.test(ua))h.textContent='Para instalar: menu ⋮ → "Adicionar à tela inicial"';
+}
+function mostrarTela(id) {
+  document.querySelectorAll('.tela').forEach(function(t){t.classList.remove('ativa');t.style.display='';});
+  var el=document.getElementById(id); el.style.display=''; el.classList.add('ativa'); window.scrollTo(0,0);
+  if(id==='tela-admin') carregarListaAdmin();
+}
+function overlayShow(msg){document.getElementById('overlay-msg').textContent=msg||'Aguarde...';document.getElementById('overlay').classList.remove('oculto');}
+function overlayHide(){document.getElementById('overlay').classList.add('oculto');}
+function toggleSenha(id,btn){var i=document.getElementById(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'👁':'🙈';}
+function fmtBR(num,casas){if(num==null||num==='')return'–';var n=Number(num);if(isNaN(n))return'–';var c=casas!==undefined?casas:2;try{return n.toLocaleString('pt-BR',{minimumFractionDigits:c,maximumFractionDigits:c});}catch(e){var p=n.toFixed(c).split('.');return p[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+(p[1]||'');}}
+
+// ══ LOGIN ════════════════════════════════════════════════════
+function efetuarLogin() {
+  var bannerVis=!document.getElementById('banner-lembrado').classList.contains('oculto');
+  var email=bannerVis?JSON.parse(localStorage.getItem(LS_KEY)||'{}').email||'':document.getElementById('login-email').value.trim();
+  var senha=document.getElementById('login-senha').value;
+  var erroEl=document.getElementById('login-erro'),btn=document.getElementById('btn-login'),lembrar=document.getElementById('lembrar-me').checked;
+  erroEl.classList.add('oculto');
+  if(!email||!senha){erroEl.textContent='Preencha email e senha.';erroEl.classList.remove('oculto');return;}
+  btn.disabled=true;btn.querySelector('.btn-txt').classList.add('oculto');btn.querySelector('.btn-load').classList.remove('oculto');
+  api('fazerLogin',{email:email,senha:senha})
+    .then(function(res){
+      btn.disabled=false;btn.querySelector('.btn-txt').classList.remove('oculto');btn.querySelector('.btn-load').classList.add('oculto');
+      if(res.erro){erroEl.textContent=res.erro;erroEl.classList.remove('oculto');return;}
+      App.usuario=res;
+      if(lembrar){salvarCredenciais(email,senha);try{var r=JSON.parse(localStorage.getItem(LS_KEY)||'{}');r.nome=res.nome;localStorage.setItem(LS_KEY,JSON.stringify(r));}catch(e){}}
+      else{try{localStorage.removeItem(LS_KEY);}catch(e){}}
+      entrarDashboard();
+    })
+    .catch(function(err){btn.disabled=false;btn.querySelector('.btn-txt').classList.remove('oculto');btn.querySelector('.btn-load').classList.add('oculto');erroEl.textContent='Erro: '+(err?err.message:'tente novamente');erroEl.classList.remove('oculto');});
+}
+
+function fazerLogout(){pararScanner();App.usuario=null;document.getElementById('login-senha').value='';document.getElementById('login-erro').classList.add('oculto');carregarCredenciais();mostrarTela('tela-login');}
+
+// ══ DASHBOARD (MORADOR) ══════════════════════════════════════
+function entrarDashboard() {
+  var u=App.usuario;
+  document.getElementById('perfil-nome').textContent=u.nome;
+  document.getElementById('perfil-email').textContent=u.email;
+  document.getElementById('perfil-apto').textContent='🏠 Apartamento '+u.apartamento;
+  mostrarTela('tela-dash');
+  var btnAdmin = document.getElementById('btn-admin-hdr');
+  if (btnAdmin) { if (u.perfil === 'Admin') btnAdmin.classList.remove('oculto'); else btnAdmin.classList.add('oculto'); }
+  carregarConsumos();
+}
+
+function carregarConsumos() {
+  var el = document.getElementById('consumos-lista');
+  el.innerHTML = '<div class="hist-vazio">Carregando...</div>';
+  api('obterConsumosMensais', { apartamento: String(App.usuario.apartamento) })
+    .then(function(res) {
+      if (!res || res.erro) { el.innerHTML = '<div class="hist-vazio">Erro ao carregar.</div>'; return; }
+      if (!res.meses || !res.meses.length) { el.innerHTML = '<div class="hist-vazio">Nenhuma leitura registrada ainda.</div>'; return; }
+      el.innerHTML = res.meses.map(function(m, idx) {
+        var custoHtml = m.custoTotal != null
+          ? '<div class="mes-custo">R$ ' + fmtBR(m.custoTotal, 2) + '</div>'
+          : '<div class="mes-aguardando">Aguardando valor do kWh</div>';
+        var itensHtml = m.itens.map(function(it) {
+          var custoIt = it.custo != null ? 'R$ ' + fmtBR(it.custo, 2) : '–';
+          return '<div class="vaga-item">' +
+            '<div class="vaga-item-titulo">Vaga ' + it.vaga + '</div>' +
+            '<div class="vaga-item-linhas">' +
+              '<span>M-1: <b>' + (it.dataAnterior||'–') + '</b> · <b>' + fmtBR(it.leituraAnterior,2) + ' kWh</b></span>' +
+              '<span>M: <b>' + (it.dataAtual||'–') + '</b> · <b>' + fmtBR(it.leituraAtual,2) + ' kWh</b></span>' +
+            '</div>' +
+            '<div class="vaga-item-linhas">' +
+              '<span>Consumo: <b>' + fmtBR(it.consumo,2) + ' kWh</b></span>' +
+              '<span>Custo: <b>' + custoIt + '</b></span>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+        return '<div class="mes-card" style="margin-bottom:10px">' +
+          '<div class="mes-card-header" onclick="toggleMes(' + idx + ')">' +
+            '<div class="mes-nome">' + m.mes + '</div>' +
+            '<div class="mes-resumo"><div class="mes-consumo">' + fmtBR(m.total,2) + ' kWh</div>' + custoHtml + '</div>' +
+          '</div>' +
+          '<div class="mes-detalhe" id="mes-det-' + idx + '">' + itensHtml + '</div>' +
+        '</div>';
+      }).join('');
+    })
+    .catch(function() { el.innerHTML = '<div class="hist-vazio">Falha ao carregar.</div>'; });
+}
+function toggleMes(idx) {
+  var el = document.getElementById('mes-det-' + idx);
+  if (!el) return;
+  el.classList.toggle('aberto');
+}
+
+// ══ SENHA ════════════════════════════════════════════════════
+function mostrarTrocarSenha(){if(App.usuario)document.getElementById('s-email').value=App.usuario.email;mostrarTela('tela-senha');}
+function mudarSenha(){
+  var email=document.getElementById('s-email').value.trim(),atual=document.getElementById('s-atual').value,nova=document.getElementById('s-nova').value,conf=document.getElementById('s-conf').value,msgEl=document.getElementById('s-msg');
+  msgEl.className='msg-erro';msgEl.classList.remove('oculto');
+  if(!email||!atual||!nova||!conf){msgEl.textContent='Preencha todos os campos.';return;}
+  if(nova!==conf){msgEl.textContent='As senhas não coincidem.';return;}
+  if(nova.length<6){msgEl.textContent='Mínimo 6 caracteres.';return;}
+  msgEl.className='';msgEl.textContent='Aguarde...';
+  api('alterarSenha',{email:email,senhaAtual:atual,novaSenha:nova})
+    .then(function(res){if(res.erro){msgEl.className='msg-erro';msgEl.textContent=res.erro;}else{msgEl.className='msg-ok';msgEl.textContent='✅ Senha alterada!';try{var r=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(r&&r.email===email){r.senha=nova;localStorage.setItem(LS_KEY,JSON.stringify(r));}}catch(e){}setTimeout(function(){mostrarTela('tela-login');msgEl.classList.add('oculto');['s-email','s-atual','s-nova','s-conf'].forEach(function(id){document.getElementById(id).value='';});},2000);}})
+    .catch(function(err){msgEl.className='msg-erro';msgEl.textContent='Erro: '+(err?err.message:'tente novamente');});
+}
+
+// ══ ADMIN — MORADORES ════════════════════════════════════════
+function carregarListaAdmin() {
+  var el = document.getElementById('admin-lista');
+  if (!el) return;
+  el.innerHTML = '<div class="hist-vazio">Carregando...</div>';
+  api('listarUsuariosAdmin', {})
+    .then(function(res) {
+      if (!res || res.erro) { el.innerHTML = '<div class="hist-vazio">Erro ao carregar.</div>'; return; }
+      if (!res.usuarios || !res.usuarios.length) { el.innerHTML = '<div class="hist-vazio">Nenhum usuário.</div>'; return; }
+      el.innerHTML = res.usuarios.map(function(u) {
+        var inativo = u.acesso === 'Inativo';
+        return '<div class="admin-user-item' + (inativo ? ' inativo' : '') + '">'
+          + '<div class="admin-user-apto">' + u.apartamento + '</div>'
+          + '<div class="admin-user-info">'
+            + '<div class="admin-user-nome">' + u.nome + '</div>'
+            + '<div class="admin-user-sub">' + u.email + ' · ' + u.perfil + (inativo ? ' · Inativo' : '') + '</div>'
+          + '</div>'
+          + (!inativo
+            ? '<button class="btn-remover" data-email="' + u.email + '" data-nome="' + u.nome + '" onclick="confirmarRemocao(this.dataset.email,this.dataset.nome)">Remover</button>'
+            : '<button class="btn-remover" data-email="' + u.email + '" onclick="reativarUsuario(this.dataset.email)" style="color:#3BCDC0;border-color:rgba(59,205,192,.3);background:rgba(59,205,192,.08)">Reativar</button>')
+          + '</div>';
+      }).join('');
+    })
+    .catch(function() { el.innerHTML = '<div class="hist-vazio">Falha ao carregar.</div>'; });
+}
+
+function abrirModalCadastro() {
+  document.getElementById('cad-apto').innerHTML = '<option value="">Carregando...</option>';
+  document.getElementById('cad-nome').value  = '';
+  document.getElementById('cad-email').value = '';
+  document.getElementById('cad-email2').value = '';
+  var msg = document.getElementById('cad-msg');
+  msg.textContent = ''; msg.className = 'oculto';
+  var btn = document.getElementById('btn-cad-salvar');
+  btn.disabled = false;
+  btn.querySelector('.btn-txt').classList.remove('oculto');
+  btn.querySelector('.btn-load').classList.add('oculto');
+  document.getElementById('modal-cadastro').classList.remove('oculto');
+
+  api('getApartamentos', {}).then(function(res) {
+    var sel = document.getElementById('cad-apto');
+    if (!res || res.erro || !res.apartamentos) { sel.innerHTML = '<option value="">Erro ao carregar</option>'; return; }
+    sel.innerHTML = '<option value="">Selecione...</option>' + res.apartamentos.map(function(a) {
+      return '<option value="' + a + '">' + a + '</option>';
+    }).join('');
+  });
+}
+function fecharModalCadastro() { document.getElementById('modal-cadastro').classList.add('oculto'); }
+
+function cadastrarUsuario() {
+  var apto   = document.getElementById('cad-apto').value.trim();
+  var nome   = document.getElementById('cad-nome').value.trim();
+  var email  = document.getElementById('cad-email').value.trim();
+  var email2 = document.getElementById('cad-email2').value.trim();
+  var msg    = document.getElementById('cad-msg');
+  var btn    = document.getElementById('btn-cad-salvar');
+
+  msg.className = 'oculto';
+  if (!apto)  { msg.textContent = 'Selecione o apartamento.'; msg.className = 'msg-erro'; return; }
+  if (!nome)  { msg.textContent = 'Informe o nome.'; msg.className = 'msg-erro'; return; }
+  if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) { msg.textContent = 'Email inválido.'; msg.className = 'msg-erro'; return; }
+  if (email !== email2) { msg.textContent = 'Os emails não coincidem.'; msg.className = 'msg-erro'; return; }
+
+  btn.disabled = true;
+  btn.querySelector('.btn-txt').classList.add('oculto');
+  btn.querySelector('.btn-load').classList.remove('oculto');
+
+  api('cadastrarUsuarioAdmin', { apartamento: apto, nome: nome, email: email })
+    .then(function(res) {
+      btn.disabled = false;
+      btn.querySelector('.btn-txt').classList.remove('oculto');
+      btn.querySelector('.btn-load').classList.add('oculto');
+      if (res && res.erro) { msg.textContent = res.erro; msg.className = 'msg-erro'; return; }
+      fecharModalCadastro();
+      carregarListaAdmin();
+      alert('✅ Morador cadastrado! Email de boas-vindas enviado para ' + email);
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.querySelector('.btn-txt').classList.remove('oculto');
+      btn.querySelector('.btn-load').classList.add('oculto');
+      msg.textContent = 'Erro de conexão.'; msg.className = 'msg-erro';
+    });
+}
+
+var _acaoEmail = '';
+function confirmarRemocao(email, nome) {
+  _acaoEmail = email;
+  document.getElementById('modal-acao-titulo').textContent = nome;
+  document.getElementById('modal-acao-sub').textContent = email;
+  document.getElementById('modal-acao-usuario').classList.remove('oculto');
+}
+function executarAcaoUsuario(acao) {
+  document.getElementById('modal-acao-usuario').classList.add('oculto');
+  api('removerUsuarioAdmin', { email: _acaoEmail, acao: acao })
+    .then(function(res) { if (res && res.erro) { alert('Erro: ' + res.erro); return; } carregarListaAdmin(); })
+    .catch(function() { alert('Falha. Tente novamente.'); });
+}
+function reativarUsuario(email) {
+  api('reativarUsuarioAdmin', { email: email })
+    .then(function(res) { if (res && res.erro) { alert('Erro: ' + res.erro); return; } carregarListaAdmin(); })
+    .catch(function() { alert('Falha. Tente novamente.'); });
+}
+
+// ══ ADMIN — SCANNER / REGISTRAR LEITURA ══════════════════════
+function abrirScanner(){_qrProcessing=false;mostrarTela('tela-qr');document.getElementById('qr-erro').classList.add('oculto');document.getElementById('qr-status').textContent='Iniciando câmera...';setTimeout(iniciarScanner,200);}
+function fecharScanner(){pararScanner();mostrarTela('tela-admin');}
+function voltarParaScanner(){ mostrarTela('tela-qr'); _qrProcessing=false; document.getElementById('qr-erro').classList.add('oculto'); document.getElementById('qr-status').textContent='Aponte a câmera para o QR code da vaga'; setTimeout(iniciarScanner,200); }
+function iniciarScanner(){
+  _qrScanner = new Html5Qrcode("qr-reader");
+  _qrScanner.start({facingMode:'environment'},{fps:10,qrbox:{width:220,height:220},aspectRatio:1.0,formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE]},
+    function(decodedText){if(_qrProcessing)return;_qrProcessing=true;pararScanner();processarQRCode(decodedText.trim());},function(){})
+  .then(function(){document.getElementById('qr-status').textContent='Aponte a câmera para o QR code da vaga';})
+  .catch(function(err){document.getElementById('qr-status').textContent='';document.getElementById('qr-erro').textContent=String(err).indexOf('ermission')>=0?'Permissão negada. Vá em Ajustes → Safari → Câmera.':'Câmera indisponível: '+err;document.getElementById('qr-erro').classList.remove('oculto');});
+}
+function pararScanner(){if(_qrScanner){_qrScanner.stop().catch(function(){});_qrScanner=null;}_qrProcessing=false;}
+
+var _vagaAtualLeitura = null;
+function processarQRCode(texto) {
+  var vagaId = texto.trim().toUpperCase();
+  if (!/^VAGA_\d+_\d+$/.test(vagaId)) {
+    document.getElementById('qr-erro').textContent = 'QR inválido: "' + texto + '". Escaneie o código da vaga.';
+    document.getElementById('qr-erro').classList.remove('oculto');
+    document.getElementById('qr-status').textContent = 'Tente novamente';
+    setTimeout(function(){ _qrProcessing=false; iniciarScanner(); }, 2500);
+    return;
+  }
+  overlayShow('Buscando última leitura...');
+  api('obterUltimaLeituraVaga', { vagaId: vagaId })
+    .then(function(res) {
+      overlayHide();
+      if (!res || res.erro) { alert('Erro: ' + (res ? res.erro : 'falha ao consultar vaga')); voltarParaScanner(); return; }
+      _vagaAtualLeitura = vagaId;
+      document.getElementById('rl-vaga').textContent = 'Apto ' + res.apto + ' · Vaga ' + res.numero;
+      document.getElementById('rl-ultima').textContent = res.temLeitura ? (fmtBR(res.ultimaLeitura,2) + ' kWh em ' + res.ultimaData) : 'Primeira leitura (baseline)';
+      document.getElementById('rl-leitura').value = '';
+      document.getElementById('rl-erro').classList.add('oculto');
+      mostrarTela('tela-registrar-leitura');
+    })
+    .catch(function() { overlayHide(); alert('Falha ao consultar a vaga.'); voltarParaScanner(); });
+}
+
+function enviarLeituraMensal() {
+  var leitura = document.getElementById('rl-leitura').value.trim();
+  var erroEl  = document.getElementById('rl-erro');
+  var btn     = document.getElementById('btn-rl-enviar');
+  erroEl.classList.add('oculto');
+  if (!leitura) { erroEl.textContent = 'Digite a leitura do medidor.'; erroEl.classList.remove('oculto'); return; }
+
+  btn.disabled = true; btn.querySelector('.btn-txt').classList.add('oculto'); btn.querySelector('.btn-load').classList.remove('oculto');
+  api('registrarLeituraMensal', { vagaId: _vagaAtualLeitura, leitura: leitura })
+    .then(function(res) {
+      btn.disabled = false; btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
+      if (!res || res.erro) { erroEl.textContent = res ? res.erro : 'Erro ao registrar.'; erroEl.classList.remove('oculto'); return; }
+      var msg = res.baseline
+        ? '✅ Primeira leitura registrada (referência). Consumo aparecerá a partir da próxima leitura.'
+        : '✅ Leitura registrada! Consumo do período: ' + fmtBR(res.consumo,2) + ' kWh.';
+      alert(msg);
+      voltarParaScanner();
+    })
+    .catch(function(err) {
+      btn.disabled = false; btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
+      erroEl.textContent = 'Falha: ' + (err ? err.message : 'tente novamente'); erroEl.classList.remove('oculto');
+    });
+}
+
+// ══ ADMIN — VALOR DO KWH ═════════════════════════════════════
+function abrirTelaValorKwh() {
+  document.getElementById('vk-mes').textContent = '–';
+  document.getElementById('vk-atual').textContent = '–';
+  document.getElementById('vk-valor').value = '';
+  document.getElementById('vk-valor-conf').value = '';
+  document.getElementById('vk-erro').classList.add('oculto');
+  document.getElementById('vk-msg').classList.add('oculto');
+  document.getElementById('btn-vk-salvar').disabled = true;
+  mostrarTela('tela-valor-kwh');
+  api('getValorKwhAtual', {}).then(function(res) {
+    if (!res || res.erro) return;
+    document.getElementById('vk-mes').textContent = res.mes;
+    document.getElementById('vk-atual').textContent = res.valorAtual != null ? ('R$ ' + fmtBR(res.valorAtual,2)) : 'Ainda não definido';
+  });
+}
+function validarValorKwh() {
+  var v1 = document.getElementById('vk-valor').value.trim();
+  var v2 = document.getElementById('vk-valor-conf').value.trim();
+  document.getElementById('btn-vk-salvar').disabled = !(v1 && v2 && v1 === v2);
+}
+function salvarValorKwh() {
+  var v1 = document.getElementById('vk-valor').value.trim();
+  var v2 = document.getElementById('vk-valor-conf').value.trim();
+  var erroEl = document.getElementById('vk-erro'), msgEl = document.getElementById('vk-msg'), btn = document.getElementById('btn-vk-salvar');
+  erroEl.classList.add('oculto'); msgEl.classList.add('oculto');
+  if (v1 !== v2) { erroEl.textContent = 'Os valores não coincidem.'; erroEl.classList.remove('oculto'); return; }
+  btn.disabled = true; btn.querySelector('.btn-txt').classList.add('oculto'); btn.querySelector('.btn-load').classList.remove('oculto');
+  api('definirValorKwhMensal', { valor: v1, valorConfirmacao: v2 })
+    .then(function(res) {
+      btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
+      if (!res || res.erro) { erroEl.textContent = res ? res.erro : 'Erro ao salvar.'; erroEl.classList.remove('oculto'); validarValorKwh(); return; }
+      msgEl.textContent = '✅ Valor de ' + res.mes + ' definido: R$ ' + fmtBR(res.valor,2) + ' /kWh'; msgEl.classList.remove('oculto');
+      document.getElementById('vk-atual').textContent = 'R$ ' + fmtBR(res.valor,2);
+    })
+    .catch(function(err) {
+      btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
+      erroEl.textContent = 'Falha: ' + (err ? err.message : 'tente novamente'); erroEl.classList.remove('oculto'); validarValorKwh();
+    });
+}
+
+// ══ ADMIN — ADICIONAR VAGA ═══════════════════════════════════
+function abrirTelaAdicionarVaga() {
+  document.getElementById('av-form-wrap').classList.remove('oculto');
+  document.getElementById('av-resultado-wrap').classList.add('oculto');
+  document.getElementById('av-apto').innerHTML = '<option value="">Carregando...</option>';
+  document.getElementById('av-existentes-wrap').classList.add('oculto');
+  document.getElementById('av-erro').classList.add('oculto');
+  mostrarTela('tela-adicionar-vaga');
+  api('getApartamentos', {}).then(function(res) {
+    var sel = document.getElementById('av-apto');
+    if (!res || res.erro || !res.apartamentos) { sel.innerHTML = '<option value="">Erro ao carregar</option>'; return; }
+    sel.innerHTML = '<option value="">Selecione...</option>' + res.apartamentos.map(function(a) { return '<option value="' + a + '">' + a + '</option>'; }).join('');
+  });
+}
+function carregarVagasExistentes() {
+  var apto = document.getElementById('av-apto').value;
+  var wrap = document.getElementById('av-existentes-wrap');
+  var el = document.getElementById('av-existentes');
+  if (!apto) { wrap.classList.add('oculto'); return; }
+  wrap.classList.remove('oculto');
+  el.innerHTML = 'Carregando...';
+  api('getVagasApartamento', { apartamento: apto }).then(function(res) {
+    if (!res || res.erro || !res.vagas || !res.vagas.length) { el.innerHTML = '<span class="vaga-existente-badge">Nenhuma vaga cadastrada ainda</span>'; return; }
+    el.innerHTML = res.vagas.map(function(v) { return '<span class="vaga-existente-badge">Vaga ' + v.numero + '</span>'; }).join('');
+  });
+}
+function salvarVagaNova() {
+  var apto = document.getElementById('av-apto').value;
+  var erroEl = document.getElementById('av-erro'), btn = document.getElementById('btn-av-salvar');
+  erroEl.classList.add('oculto');
+  if (!apto) { erroEl.textContent = 'Selecione o apartamento.'; erroEl.classList.remove('oculto'); return; }
+  btn.disabled = true; btn.querySelector('.btn-txt').classList.add('oculto'); btn.querySelector('.btn-load').classList.remove('oculto');
+  api('adicionarVagaNova', { apartamento: apto })
+    .then(function(res) {
+      btn.disabled = false; btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
+      if (!res || res.erro) { erroEl.textContent = res ? res.erro : 'Erro ao criar vaga.'; erroEl.classList.remove('oculto'); return; }
+      mostrarResultadoVaga(res);
+    })
+    .catch(function(err) {
+      btn.disabled = false; btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
+      erroEl.textContent = 'Falha: ' + (err ? err.message : 'tente novamente'); erroEl.classList.remove('oculto');
+    });
+}
+function mostrarResultadoVaga(res) {
+  document.getElementById('av-form-wrap').classList.add('oculto');
+  document.getElementById('av-resultado-wrap').classList.remove('oculto');
+  document.getElementById('av-resultado-titulo').textContent = 'Vaga ' + res.numero + ' criada — Apto ' + res.apto;
+  document.getElementById('av-resultado-texto').textContent = res.qr;
+  var container = document.getElementById('av-qr-container');
+  container.innerHTML = '';
+  new QRCode(container, { text: res.qr, width: 220, height: 220, colorDark: '#0d0d0d', colorLight: '#ffffff' });
+}
+function fecharResultadoVaga() {
+  document.getElementById('av-resultado-wrap').classList.add('oculto');
+  abrirTelaAdicionarVaga();
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Enter')return;
+  var a=document.querySelector('.tela.ativa'); if(!a)return;
+  if(a.id==='tela-login')efetuarLogin();
+  if(a.id==='tela-senha')mudarSenha();
+  if(a.id==='tela-registrar-leitura')enviarLeituraMensal();
+});
+</script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+</body>
+</html>
