@@ -236,7 +236,10 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
       <button class="btn-senha-ico" onclick="mostrarTrocarSenha()">🔑</button>
     </div>
     <div class="card" style="gap:0">
-      <div style="font-family:var(--f-display);font-size:22px;letter-spacing:.04em;color:var(--txt);margin-bottom:14px">Meus Consumos</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-family:var(--f-display);font-size:22px;letter-spacing:.04em;color:var(--txt)">Meus Consumos</div>
+        <button class="btn-sair" onclick="abrirRelatorio('morador')" style="font-size:13px">📧 Relatório</button>
+      </div>
       <div id="consumos-lista"><div class="hist-vazio">Carregando...</div></div>
     </div>
     <p style="font-size:13px;color:var(--txt-sub);line-height:1.7;padding:0 4px">
@@ -307,9 +310,32 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
       <button class="btn-menu-admin" onclick="abrirTelaAdicionarVaga()"><span class="ico">🅿️</span><span class="lbl">Gerenciar Vagas</span></button>
       <button class="btn-menu-admin" onclick="abrirModalCadastro()"><span class="ico">👤</span><span class="lbl">Cadastrar Morador</span></button>
       <button class="btn-menu-admin" onclick="abrirTelaHistoricoAdmin()" style="grid-column:span 2"><span class="ico">📊</span><span class="lbl">Histórico por Apartamento</span></button>
+      <button class="btn-menu-admin" onclick="abrirRelatorio('admin')" style="grid-column:span 2"><span class="ico">📈</span><span class="lbl">Relatório Mensal (Excel por Email)</span></button>
     </div>
     <div style="font-family:var(--f-display);font-size:20px;letter-spacing:.04em;color:var(--txt);margin-top:8px">Moradores</div>
     <div id="admin-lista"><div class="hist-vazio">Carregando...</div></div>
+  </div>
+</div>
+
+<!-- RELATÓRIO MENSAL (EXCEL POR EMAIL) — admin e morador -->
+<div id="tela-relatorio" class="tela">
+  <header class="app-header">
+    <img src="icon-512.png" class="hdr-logo-img" alt="St. Paul de Vence">
+    <div class="hdr-titulo">Relatório Mensal<span>Carros Elétricos · St. Paul de Vence</span></div>
+    <div class="hdr-dir"><button class="btn-sair" onclick="voltarDoRelatorio()">← Voltar</button></div>
+  </header>
+  <div class="dash-main">
+    <div class="card" style="gap:0">
+      <div style="font-family:var(--f-display);font-size:20px;letter-spacing:.04em;color:var(--txt);margin-bottom:4px" id="rel-subtitulo">Selecione os meses</div>
+      <p style="font-size:13px;color:var(--txt-sub);margin-bottom:14px" id="rel-descricao">Escolha os meses que quer incluir no relatório em Excel.</p>
+      <div id="rel-meses-lista" style="display:flex;flex-direction:column;gap:8px"><div class="hist-vazio">Carregando...</div></div>
+    </div>
+    <div id="rel-erro" class="msg-erro oculto"></div>
+    <div id="rel-msg" class="msg-ok oculto"></div>
+    <button class="btn-primary" id="btn-rel-enviar" onclick="enviarRelatorioEmail()">
+      <span class="btn-txt">📧 Enviar por Email</span>
+      <span class="btn-load oculto">Gerando planilha...</span>
+    </button>
   </div>
 </div>
 
@@ -740,6 +766,73 @@ function reativarUsuario(email) {
   api('reativarUsuarioAdmin', { email: email })
     .then(function(res) { if (res && res.erro) { alert('Erro: ' + res.erro); return; } carregarListaAdmin(); })
     .catch(function() { alert('Falha. Tente novamente.'); });
+}
+
+// ══ RELATÓRIO MENSAL (EXCEL POR EMAIL) ═══════════════════════
+var _relatorioContexto = 'admin';
+function abrirRelatorio(contexto) {
+  _relatorioContexto = contexto;
+  document.getElementById('rel-erro').classList.add('oculto');
+  document.getElementById('rel-msg').classList.add('oculto');
+  document.getElementById('rel-meses-lista').innerHTML = '<div class="hist-vazio">Carregando...</div>';
+  var btn = document.getElementById('btn-rel-enviar');
+  btn.disabled = false;
+  btn.querySelector('.btn-txt').classList.remove('oculto');
+  btn.querySelector('.btn-load').classList.add('oculto');
+
+  if (contexto === 'admin') {
+    document.getElementById('rel-subtitulo').textContent = 'Selecione os meses';
+    document.getElementById('rel-descricao').textContent = 'Relatório com todos os apartamentos (linhas) e os meses escolhidos (colunas), em Excel.';
+  } else {
+    document.getElementById('rel-subtitulo').textContent = 'Selecione os meses';
+    document.getElementById('rel-descricao').textContent = 'Relatório do seu apartamento nos meses escolhidos, em Excel.';
+  }
+
+  mostrarTela('tela-relatorio');
+
+  var chamada = contexto === 'admin'
+    ? api('listarMesesRelatorioAdmin', {})
+    : api('listarMesesRelatorioMorador', { email: App.usuario.email });
+
+  chamada.then(function(res) {
+    var el = document.getElementById('rel-meses-lista');
+    if (!res || res.erro) { el.innerHTML = '<div class="hist-vazio">Erro ao carregar meses.</div>'; return; }
+    if (!res.meses || !res.meses.length) { el.innerHTML = '<div class="hist-vazio">Nenhum mês com leitura registrada ainda.</div>'; return; }
+    el.innerHTML = res.meses.map(function(m, idx) {
+      return '<label class="check-label" style="padding:10px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px">' +
+        '<input type="checkbox" class="rel-mes-check" value="' + m.sortKey + '" ' + (idx < 3 ? 'checked' : '') + '>' +
+        '<span>' + m.label + '</span>' +
+      '</label>';
+    }).join('');
+  }).catch(function() {
+    document.getElementById('rel-meses-lista').innerHTML = '<div class="hist-vazio">Falha ao carregar.</div>';
+  });
+}
+function voltarDoRelatorio() {
+  mostrarTela(_relatorioContexto === 'admin' ? 'tela-admin' : 'tela-dash');
+}
+function enviarRelatorioEmail() {
+  var checks = document.querySelectorAll('.rel-mes-check:checked');
+  var meses = Array.prototype.map.call(checks, function(c) { return Number(c.value); });
+  var erroEl = document.getElementById('rel-erro'), msgEl = document.getElementById('rel-msg'), btn = document.getElementById('btn-rel-enviar');
+  erroEl.classList.add('oculto'); msgEl.classList.add('oculto');
+  if (!meses.length) { erroEl.textContent = 'Selecione ao menos um mês.'; erroEl.classList.remove('oculto'); return; }
+
+  btn.disabled = true; btn.querySelector('.btn-txt').classList.add('oculto'); btn.querySelector('.btn-load').classList.remove('oculto');
+
+  var chamada = _relatorioContexto === 'admin'
+    ? api('enviarRelatorioAdmin', { mesesSortKeys: meses, emailDestino: App.usuario.email })
+    : api('enviarRelatorioMorador', { email: App.usuario.email, mesesSortKeys: meses });
+
+  chamada.then(function(res) {
+    btn.disabled = false; btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
+    if (!res || res.erro) { erroEl.textContent = res ? res.erro : 'Erro ao enviar relatório.'; erroEl.classList.remove('oculto'); return; }
+    msgEl.textContent = '✅ Relatório enviado para ' + res.email + '. Pode levar alguns minutos para chegar.';
+    msgEl.classList.remove('oculto');
+  }).catch(function(err) {
+    btn.disabled = false; btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
+    erroEl.textContent = 'Falha: ' + (err ? err.message : 'tente novamente'); erroEl.classList.remove('oculto');
+  });
 }
 
 // ══ ADMIN — HISTÓRICO POR APARTAMENTO ═══════════════════════
