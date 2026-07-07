@@ -48,6 +48,14 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 .check-label{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--txt-sub);cursor:pointer}
 .check-label input[type=checkbox]{width:18px;height:18px;accent-color:var(--k-green);cursor:pointer}
 .check-label input[type=radio]{width:20px;height:20px;flex-shrink:0;accent-color:var(--k-green);cursor:pointer;margin:0}
+.tipo-morador-opcao{display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;cursor:pointer;margin-bottom:8px;-webkit-tap-highlight-color:transparent;transition:border-color .15s,background .15s}
+.tipo-morador-opcao:last-child{margin-bottom:0}
+.tipo-morador-opcao.ativa{border-color:var(--k-green);background:var(--k-green-dim)}
+.tipo-morador-opcao b{color:var(--txt);font-size:14px}
+.tipo-morador-sub{font-size:12px;color:var(--txt-sub);margin-top:2px;line-height:1.4}
+.tipo-morador-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;margin-top:1px;position:relative;transition:border-color .15s}
+.tipo-morador-opcao.ativa .tipo-morador-check{border-color:var(--k-green)}
+.tipo-morador-opcao.ativa .tipo-morador-check::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--k-green)}
 .banner-lembrado{background:var(--k-green-dim);border:1px solid rgba(59,205,192,.25);border-radius:var(--r-sm);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;font-size:16px;font-weight:600;color:var(--k-green)}
 .banner-trocar{background:none;border:none;color:var(--txt-sub);font-size:16px;cursor:pointer;text-decoration:underline;font-family:var(--f-body);padding:2px}
 .hint-pwa{font-size:16px;color:var(--txt-dim);text-align:center;max-width:280px;line-height:1.7;padding:0 8px}
@@ -421,14 +429,14 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
     </div>
     <div class="campo">
       <label>Este morador...</label>
-      <label class="check-label" style="align-items:flex-start;gap:10px;padding:10px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px">
-        <input type="radio" name="cad-tipo" value="novo" checked style="margin-top:2px">
-        <span><b style="color:var(--txt)">É novo no prédio</b><br><span style="font-size:12px;color:var(--txt-sub)">Não vê o histórico/custos anteriores do apartamento</span></span>
-      </label>
-      <label class="check-label" style="align-items:flex-start;gap:10px;padding:10px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;margin-top:8px">
-        <input type="radio" name="cad-tipo" value="existente" style="margin-top:2px">
-        <span><b style="color:var(--txt)">Já mora no apartamento</b><br><span style="font-size:12px;color:var(--txt-sub)">Cônjuge/familiar de quem já usa o sistema — vê todo o histórico da unidade</span></span>
-      </label>
+      <div class="tipo-morador-opcao ativa" id="opcao-tipo-novo" onclick="selecionarTipoMorador('novo')">
+        <div class="tipo-morador-check"></div>
+        <div><b>É novo no prédio</b><div class="tipo-morador-sub">Não vê o histórico/custos anteriores do apartamento</div></div>
+      </div>
+      <div class="tipo-morador-opcao" id="opcao-tipo-existente" onclick="selecionarTipoMorador('existente')">
+        <div class="tipo-morador-check"></div>
+        <div><b>Já mora no apartamento</b><div class="tipo-morador-sub">Cônjuge/familiar de quem já usa o sistema — vê todo o histórico da unidade</div></div>
+      </div>
     </div>
     <div id="cad-msg" class="oculto"></div>
     <button class="btn-primary" id="btn-cad-salvar" onclick="cadastrarUsuario()" style="font-size:20px">
@@ -654,8 +662,7 @@ function abrirModalCadastro() {
   document.getElementById('cad-nome').value  = '';
   document.getElementById('cad-email').value = '';
   document.getElementById('cad-email2').value = '';
-  var radioNovo = document.querySelector('input[name="cad-tipo"][value="novo"]');
-  if (radioNovo) radioNovo.checked = true;
+  selecionarTipoMorador('novo');
   var msg = document.getElementById('cad-msg');
   msg.textContent = ''; msg.className = 'oculto';
   var btn = document.getElementById('btn-cad-salvar');
@@ -679,8 +686,7 @@ function cadastrarUsuario() {
   var nome   = document.getElementById('cad-nome').value.trim();
   var email  = document.getElementById('cad-email').value.trim();
   var email2 = document.getElementById('cad-email2').value.trim();
-  var tipoSel = document.querySelector('input[name="cad-tipo"]:checked');
-  var moradorExistente = tipoSel && tipoSel.value === 'existente';
+  var moradorExistente = (_tipoMoradorSelecionado === 'existente');
   var msg    = document.getElementById('cad-msg');
   var btn    = document.getElementById('btn-cad-salvar');
 
@@ -713,6 +719,12 @@ function cadastrarUsuario() {
 }
 
 var _acaoEmail = '';
+var _tipoMoradorSelecionado = 'novo';
+function selecionarTipoMorador(tipo) {
+  _tipoMoradorSelecionado = tipo;
+  document.getElementById('opcao-tipo-novo').classList.toggle('ativa', tipo === 'novo');
+  document.getElementById('opcao-tipo-existente').classList.toggle('ativa', tipo === 'existente');
+}
 function confirmarRemocao(email, nome) {
   _acaoEmail = email;
   document.getElementById('modal-acao-titulo').textContent = nome;
