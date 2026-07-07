@@ -310,7 +310,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
       <button class="btn-menu-admin" onclick="abrirTelaAdicionarVaga()"><span class="ico">🅿️</span><span class="lbl">Gerenciar Vagas</span></button>
       <button class="btn-menu-admin" onclick="abrirModalCadastro()"><span class="ico">👤</span><span class="lbl">Cadastrar Morador</span></button>
       <button class="btn-menu-admin" onclick="abrirTelaHistoricoAdmin()" style="grid-column:span 2"><span class="ico">📊</span><span class="lbl">Histórico por Apartamento</span></button>
-      <button class="btn-menu-admin" onclick="abrirRelatorio('admin')" style="grid-column:span 2"><span class="ico">📈</span><span class="lbl">Relatório Mensal (Excel por Email)</span></button>
+      <button class="btn-menu-admin" onclick="abrirRelatorio('admin')" style="grid-column:span 2"><span class="ico">📧</span><span class="lbl">Relatório Mensal por Email</span></button>
     </div>
     <div style="font-family:var(--f-display);font-size:20px;letter-spacing:.04em;color:var(--txt);margin-top:8px">Moradores</div>
     <div id="admin-lista"><div class="hist-vazio">Carregando...</div></div>
@@ -334,7 +334,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
     <div id="rel-msg" class="msg-ok oculto"></div>
     <button class="btn-primary" id="btn-rel-enviar" onclick="enviarRelatorioEmail()">
       <span class="btn-txt">📧 Enviar por Email</span>
-      <span class="btn-load oculto">Gerando planilha...</span>
+      <span class="btn-load oculto">Gerando relatório...</span>
     </button>
   </div>
 </div>
@@ -782,10 +782,10 @@ function abrirRelatorio(contexto) {
 
   if (contexto === 'admin') {
     document.getElementById('rel-subtitulo').textContent = 'Selecione os meses';
-    document.getElementById('rel-descricao').textContent = 'Relatório com todos os apartamentos (linhas) e os meses escolhidos (colunas), em Excel.';
+    document.getElementById('rel-descricao').textContent = 'Relatório com todos os apartamentos (linhas) e os meses escolhidos (colunas) — chega no email como tabela e também em anexo .csv (abre no Excel).';
   } else {
     document.getElementById('rel-subtitulo').textContent = 'Selecione os meses';
-    document.getElementById('rel-descricao').textContent = 'Relatório do seu apartamento nos meses escolhidos, em Excel.';
+    document.getElementById('rel-descricao').textContent = 'Relatório do seu apartamento nos meses escolhidos — chega no email como tabela e também em anexo .csv (abre no Excel).';
   }
 
   mostrarTela('tela-relatorio');
