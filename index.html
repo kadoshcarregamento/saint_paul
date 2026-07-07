@@ -386,7 +386,12 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
       <div style="font-family:var(--f-display);font-size:26px;color:var(--k-green);letter-spacing:.04em" id="av-resultado-titulo">Vaga criada!</div>
       <div class="qr-gerado-wrap" id="av-qr-container"></div>
       <div class="leitura-vaga-display" id="av-resultado-texto">–</div>
-      <p style="font-size:13px;color:var(--txt-sub);line-height:1.6">Imprima este QR code e cole na vaga correspondente.<br>📧 Também enviamos por email para o(s) administrador(es).</p>
+      <p style="font-size:13px;color:var(--txt-sub);line-height:1.6">
+        <b style="color:var(--txt)">📱 iPhone:</b> toque e segure a imagem acima → "Adicionar à Fototeca".<br>
+        <b style="color:var(--txt)">🤖 Android/PC:</b> use o botão abaixo para baixar.
+      </p>
+      <button class="btn-secundario" id="btn-av-baixar" onclick="baixarQrGerado()">⬇️ Baixar Imagem do QR</button>
+      <p style="font-size:13px;color:var(--txt-sub);line-height:1.6">Também enviamos por email para o(s) administrador(es) — mas salvar aqui garante que você tem o arquivo mesmo se o email não chegar.</p>
       <button class="btn-primary" onclick="fecharResultadoVaga()">➕ Adicionar Outra Vaga</button>
       <button class="btn-link" onclick="mostrarTela('tela-admin')">Concluir</button>
     </div>
@@ -864,6 +869,7 @@ function salvarVagaNova() {
       erroEl.textContent = 'Falha: ' + (err ? err.message : 'tente novamente'); erroEl.classList.remove('oculto');
     });
 }
+var _qrDataUrlAtual = null, _qrNomeArquivoAtual = null;
 function mostrarResultadoVaga(res) {
   document.getElementById('av-form-wrap').classList.add('oculto');
   document.getElementById('av-resultado-wrap').classList.remove('oculto');
@@ -871,7 +877,31 @@ function mostrarResultadoVaga(res) {
   document.getElementById('av-resultado-texto').textContent = res.qr;
   var container = document.getElementById('av-qr-container');
   container.innerHTML = '';
-  new QRCode(container, { text: res.qr, width: 220, height: 220, colorDark: '#0d0d0d', colorLight: '#ffffff' });
+  var temp = document.createElement('div');
+  new QRCode(temp, { text: res.qr, width: 500, height: 500, colorDark: '#0d0d0d', colorLight: '#ffffff' });
+  setTimeout(function() {
+    var canvas = temp.querySelector('canvas');
+    var dataUrl = canvas ? canvas.toDataURL('image/png') : (temp.querySelector('img') ? temp.querySelector('img').src : null);
+    _qrDataUrlAtual = dataUrl;
+    _qrNomeArquivoAtual = res.qr + '.png';
+    var img = document.createElement('img');
+    img.src = dataUrl;
+    img.alt = 'QR Code ' + res.qr;
+    img.style.width = '220px';
+    img.style.height = '220px';
+    img.style.display = 'block';
+    container.innerHTML = '';
+    container.appendChild(img);
+  }, 50);
+}
+function baixarQrGerado() {
+  if (!_qrDataUrlAtual) return;
+  var a = document.createElement('a');
+  a.href = _qrDataUrlAtual;
+  a.download = _qrNomeArquivoAtual || 'qrcode.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 function fecharResultadoVaga() {
   document.getElementById('av-resultado-wrap').classList.add('oculto');
