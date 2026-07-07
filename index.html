@@ -110,7 +110,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 .btn-remover:active{opacity:.7}
 .admin-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px}
 .admin-modal-overlay.oculto{display:none!important}
-.admin-modal-box{background:#111;border:1px solid rgba(222,208,172,.2);border-radius:var(--r);padding:24px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow-y:auto}
+.admin-modal-box{background:#111;border:1px solid rgba(222,208,172,.2);border-radius:var(--r);padding:24px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .admin-modal-titulo{font-family:var(--f-display);font-size:26px;letter-spacing:.04em;color:var(--k-green);text-align:center}
 .menu-admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btn-menu-admin{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;-webkit-appearance:none;color:var(--txt);text-align:center}
@@ -438,7 +438,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 <div id="modal-cadastro" class="admin-modal-overlay oculto">
   <div class="admin-modal-box">
     <div class="admin-modal-titulo">Novo Morador</div>
-    <div class="campo"><label>Apartamento</label>
+    <div class="campo"><label>Apartamento <span style="color:var(--txt-sub);text-transform:none;font-weight:400">(opcional se for só admin)</span></label>
       <select id="cad-apto">
         <option value="">Selecione...</option>
       </select>
@@ -461,6 +461,10 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
       <div class="tipo-morador-opcao" id="opcao-tipo-existente" onclick="selecionarTipoMorador('existente')">
         <div class="tipo-morador-check"></div>
         <div><b>Já mora no apartamento</b><div class="tipo-morador-sub">Cônjuge/familiar de quem já usa o sistema — vê todo o histórico da unidade</div></div>
+      </div>
+      <div class="tipo-morador-opcao" id="opcao-tipo-admin" onclick="selecionarTipoMorador('admin')">
+        <div class="tipo-morador-check"></div>
+        <div><b>Será apenas admin</b><div class="tipo-morador-sub">Acesso de administrador (gerenciar vagas, moradores, leituras) — não é vinculado como morador</div></div>
       </div>
     </div>
     <div id="cad-msg" class="oculto"></div>
@@ -711,21 +715,21 @@ function cadastrarUsuario() {
   var nome   = document.getElementById('cad-nome').value.trim();
   var email  = document.getElementById('cad-email').value.trim();
   var email2 = document.getElementById('cad-email2').value.trim();
-  var moradorExistente = (_tipoMoradorSelecionado === 'existente');
   var msg    = document.getElementById('cad-msg');
   var btn    = document.getElementById('btn-cad-salvar');
 
   msg.className = 'oculto';
-  if (!apto)  { msg.textContent = 'Selecione o apartamento.'; msg.className = 'msg-erro'; return; }
+  if (!apto && _tipoMoradorSelecionado !== 'admin') { msg.textContent = 'Selecione o apartamento.'; msg.className = 'msg-erro'; return; }
   if (!nome)  { msg.textContent = 'Informe o nome.'; msg.className = 'msg-erro'; return; }
   if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) { msg.textContent = 'Email inválido.'; msg.className = 'msg-erro'; return; }
   if (email !== email2) { msg.textContent = 'Os emails não coincidem.'; msg.className = 'msg-erro'; return; }
+  if (!apto) apto = 'ADMIN';
 
   btn.disabled = true;
   btn.querySelector('.btn-txt').classList.add('oculto');
   btn.querySelector('.btn-load').classList.remove('oculto');
 
-  api('cadastrarUsuarioAdmin', { apartamento: apto, nome: nome, email: email, moradorExistente: moradorExistente })
+  api('cadastrarUsuarioAdmin', { apartamento: apto, nome: nome, email: email, tipo: _tipoMoradorSelecionado })
     .then(function(res) {
       btn.disabled = false;
       btn.querySelector('.btn-txt').classList.remove('oculto');
@@ -749,6 +753,7 @@ function selecionarTipoMorador(tipo) {
   _tipoMoradorSelecionado = tipo;
   document.getElementById('opcao-tipo-novo').classList.toggle('ativa', tipo === 'novo');
   document.getElementById('opcao-tipo-existente').classList.toggle('ativa', tipo === 'existente');
+  document.getElementById('opcao-tipo-admin').classList.toggle('ativa', tipo === 'admin');
 }
 function confirmarRemocao(email, nome) {
   _acaoEmail = email;
