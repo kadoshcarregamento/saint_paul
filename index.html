@@ -125,6 +125,21 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 .vaga-item-linhas{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--txt-sub)}
 .vaga-item-linhas b{color:var(--txt);font-weight:600}
 .vaga-item-consumo{font-size:13px;font-weight:700;color:var(--txt)}
+.hist-item{background:var(--bg-input);border-radius:var(--r-sm);padding:14px 12px;border:1px solid var(--border);display:flex;align-items:stretch;gap:8px;margin-bottom:8px}
+.hist-esq{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;justify-content:center}
+.hist-vaga-tag{font-size:11px;font-weight:700;color:var(--k-green);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.hist-data{font-size:12px;color:var(--txt);font-weight:500;white-space:nowrap}
+.hist-leitura{font-size:11px;color:var(--txt-sub);margin-bottom:4px}
+.hist-dir-wrap{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:110px}
+.hist-preco-bloco{display:flex;flex-direction:column;align-items:center}
+.hist-preco-valor{font-family:var(--f-display);font-size:22px;color:var(--txt);letter-spacing:.02em;line-height:1}
+.hist-preco-label{font-size:10px;color:var(--txt-sub);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.hist-consumo{display:flex;flex-direction:column;align-items:center}
+.hist-kwh{font-family:var(--f-display);font-weight:700;color:var(--k-green);font-size:26px;letter-spacing:.02em;line-height:1}
+.hist-kwh-unit{font-size:13px;font-weight:600;color:var(--k-green);line-height:1;margin-top:2px}
+.hist-badge{font-size:11px;font-weight:600;padding:6px 0;border-radius:20px;white-space:nowrap;width:100%;text-align:center}
+.hist-badge.ok{background:var(--k-green-dim);color:var(--k-green);border:1px solid rgba(59,205,192,.2)}
+.hist-badge.aguardando{background:rgba(255,200,0,.1);color:#ffc800;border:1px solid rgba(255,200,0,.2)}
 .qr-gerado-wrap{background:#fff;border-radius:16px;padding:20px;display:flex;align-items:center;justify-content:center}
 .vaga-existente-badge{background:var(--bg-input);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--txt-sub)}
 .vagas-existentes-linha{display:flex;flex-wrap:wrap;gap:8px}
@@ -285,6 +300,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
       <button class="btn-menu-admin" onclick="abrirTelaValorKwh()"><span class="ico">💰</span><span class="lbl">Valor do kWh do Mês</span></button>
       <button class="btn-menu-admin" onclick="abrirTelaAdicionarVaga()"><span class="ico">➕</span><span class="lbl">Adicionar Vaga</span></button>
       <button class="btn-menu-admin" onclick="abrirModalCadastro()"><span class="ico">👤</span><span class="lbl">Cadastrar Morador</span></button>
+      <button class="btn-menu-admin" onclick="abrirTelaHistoricoAdmin()" style="grid-column:span 2"><span class="ico">📊</span><span class="lbl">Histórico por Apartamento</span></button>
     </div>
     <div style="font-family:var(--f-display);font-size:20px;letter-spacing:.04em;color:var(--txt);margin-top:8px">Moradores</div>
     <div id="admin-lista"><div class="hist-vazio">Carregando...</div></div>
@@ -323,6 +339,27 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
   </div>
 </div>
 
+<!-- ADMIN — HISTÓRICO POR APARTAMENTO -->
+<div id="tela-historico-admin" class="tela">
+  <header class="app-header">
+    <img src="https://raw.githubusercontent.com/kadoshcarregamento/kadosh/d4f52f23e72d21516bc1c69743b8cf78b63a93e1/Logo_kadosh512.png" class="hdr-logo-img" alt="Kadosh">
+    <div class="hdr-titulo">Histórico por Apartamento<span>Carros Elétricos · Kadosh</span></div>
+    <div class="hdr-dir"><button class="btn-sair" onclick="mostrarTela('tela-admin')">← Voltar</button></div>
+  </header>
+  <div class="dash-main">
+    <div class="card">
+      <div class="campo"><label>Apartamento</label>
+        <select id="ha-apto" onchange="carregarHistoricoAdmin()">
+          <option value="">Selecione...</option>
+        </select>
+      </div>
+    </div>
+    <div class="card" id="ha-resultado-wrap" style="gap:0">
+      <div class="hist-vazio">Selecione um apartamento acima.</div>
+    </div>
+  </div>
+</div>
+
 <!-- ADMIN — ADICIONAR VAGA -->
 <div id="tela-adicionar-vaga" class="tela">
   <header class="app-header">
@@ -353,7 +390,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
       <div style="font-family:var(--f-display);font-size:26px;color:var(--k-green);letter-spacing:.04em" id="av-resultado-titulo">Vaga criada!</div>
       <div class="qr-gerado-wrap" id="av-qr-container"></div>
       <div class="leitura-vaga-display" id="av-resultado-texto">–</div>
-      <p style="font-size:13px;color:var(--txt-sub);line-height:1.6">Imprima este QR code e cole na vaga correspondente.</p>
+      <p style="font-size:13px;color:var(--txt-sub);line-height:1.6">Imprima este QR code e cole na vaga correspondente.<br>📧 Também enviamos por email para o(s) administrador(es).</p>
       <button class="btn-primary" onclick="fecharResultadoVaga()">➕ Adicionar Outra Vaga</button>
       <button class="btn-link" onclick="mostrarTela('tela-admin')">Concluir</button>
     </div>
@@ -501,9 +538,13 @@ function entrarDashboard() {
 }
 
 function carregarConsumos() {
-  var el = document.getElementById('consumos-lista');
+  renderConsumosEm('consumos-lista', String(App.usuario.apartamento));
+}
+
+function renderConsumosEm(elId, apartamento) {
+  var el = document.getElementById(elId);
   el.innerHTML = '<div class="hist-vazio">Carregando...</div>';
-  api('obterConsumosMensais', { apartamento: String(App.usuario.apartamento) })
+  api('obterConsumosMensais', { apartamento: apartamento })
     .then(function(res) {
       if (!res || res.erro) { el.innerHTML = '<div class="hist-vazio">Erro ao carregar.</div>'; return; }
       if (!res.meses || !res.meses.length) { el.innerHTML = '<div class="hist-vazio">Nenhuma leitura registrada ainda.</div>'; return; }
@@ -511,33 +552,38 @@ function carregarConsumos() {
         var custoHtml = m.custoTotal != null
           ? '<div class="mes-custo">R$ ' + fmtBR(m.custoTotal, 2) + '</div>'
           : '<div class="mes-aguardando">Aguardando valor do kWh</div>';
+        var precoLabel = m.valorKwh != null ? ('R$ ' + fmtBR(m.valorKwh, 2)) : '–';
+        var badgeCls = m.valorKwh != null ? 'ok' : 'aguardando';
+        var badgeTxt = m.valorKwh != null ? 'Concluído' : 'Aguardando valor';
         var itensHtml = m.itens.map(function(it) {
-          var custoIt = it.custo != null ? 'R$ ' + fmtBR(it.custo, 2) : '–';
-          return '<div class="vaga-item">' +
-            '<div class="vaga-item-titulo">Vaga ' + it.vaga + '</div>' +
-            '<div class="vaga-item-linhas">' +
-              '<span>M-1: <b>' + (it.dataAnterior||'–') + '</b> · <b>' + fmtBR(it.leituraAnterior,2) + ' kWh</b></span>' +
-              '<span>M: <b>' + (it.dataAtual||'–') + '</b> · <b>' + fmtBR(it.leituraAtual,2) + ' kWh</b></span>' +
+          return '<div class="hist-item">' +
+            '<div class="hist-esq">' +
+              '<div class="hist-vaga-tag">Vaga ' + it.vaga + '</div>' +
+              '<div class="hist-data">Início: ' + (it.dataAnterior||'–') + '</div>' +
+              '<div class="hist-leitura">Leitura: ' + fmtBR(it.leituraAnterior,2) + ' kWh</div>' +
+              '<div class="hist-data">Fim: ' + (it.dataAtual||'–') + '</div>' +
+              '<div class="hist-leitura">Leitura: ' + fmtBR(it.leituraAtual,2) + ' kWh</div>' +
             '</div>' +
-            '<div class="vaga-item-linhas">' +
-              '<span>Consumo: <b>' + fmtBR(it.consumo,2) + ' kWh</b></span>' +
-              '<span>Custo: <b>' + custoIt + '</b></span>' +
+            '<div class="hist-dir-wrap">' +
+              '<div class="hist-preco-bloco"><div class="hist-preco-valor">' + precoLabel + '</div><div class="hist-preco-label">Valor kWh</div></div>' +
+              '<div class="hist-consumo"><div class="hist-kwh">' + fmtBR(it.consumo,2) + '</div><div class="hist-kwh-unit">kWh</div></div>' +
+              '<div class="hist-badge ' + badgeCls + '">' + badgeTxt + '</div>' +
             '</div>' +
           '</div>';
         }).join('');
         return '<div class="mes-card" style="margin-bottom:10px">' +
-          '<div class="mes-card-header" onclick="toggleMes(' + idx + ')">' +
+          '<div class="mes-card-header" onclick="toggleMes(this, ' + idx + ', \'' + elId + '\')">' +
             '<div class="mes-nome">' + m.mes + '</div>' +
             '<div class="mes-resumo"><div class="mes-consumo">' + fmtBR(m.total,2) + ' kWh</div>' + custoHtml + '</div>' +
           '</div>' +
-          '<div class="mes-detalhe" id="mes-det-' + idx + '">' + itensHtml + '</div>' +
+          '<div class="mes-detalhe" id="mes-det-' + elId + '-' + idx + '">' + itensHtml + '</div>' +
         '</div>';
       }).join('');
     })
     .catch(function() { el.innerHTML = '<div class="hist-vazio">Falha ao carregar.</div>'; });
 }
-function toggleMes(idx) {
-  var el = document.getElementById('mes-det-' + idx);
+function toggleMes(headerEl, idx, elId) {
+  var el = document.getElementById('mes-det-' + elId + '-' + idx);
   if (!el) return;
   el.classList.toggle('aberto');
 }
@@ -658,6 +704,23 @@ function reativarUsuario(email) {
   api('reativarUsuarioAdmin', { email: email })
     .then(function(res) { if (res && res.erro) { alert('Erro: ' + res.erro); return; } carregarListaAdmin(); })
     .catch(function() { alert('Falha. Tente novamente.'); });
+}
+
+// ══ ADMIN — HISTÓRICO POR APARTAMENTO ═══════════════════════
+function abrirTelaHistoricoAdmin() {
+  document.getElementById('ha-apto').innerHTML = '<option value="">Carregando...</option>';
+  document.getElementById('ha-resultado-wrap').innerHTML = '<div class="hist-vazio">Selecione um apartamento acima.</div>';
+  mostrarTela('tela-historico-admin');
+  api('getApartamentos', {}).then(function(res) {
+    var sel = document.getElementById('ha-apto');
+    if (!res || res.erro || !res.apartamentos) { sel.innerHTML = '<option value="">Erro ao carregar</option>'; return; }
+    sel.innerHTML = '<option value="">Selecione...</option>' + res.apartamentos.map(function(a) { return '<option value="' + a + '">' + a + '</option>'; }).join('');
+  });
+}
+function carregarHistoricoAdmin() {
+  var apto = document.getElementById('ha-apto').value;
+  if (!apto) { document.getElementById('ha-resultado-wrap').innerHTML = '<div class="hist-vazio">Selecione um apartamento acima.</div>'; return; }
+  renderConsumosEm('ha-resultado-wrap', apto);
 }
 
 // ══ ADMIN — SCANNER / REGISTRAR LEITURA ══════════════════════
