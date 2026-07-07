@@ -191,7 +191,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
         <span class="btn-txt">Entrar</span>
         <span class="btn-load oculto">Aguarde...</span>
       </button>
-      <button class="btn-link" onclick="mostrarTela('tela-senha')">Alterar senha</button>
+      <button class="btn-link" onclick="mostrarTrocarSenha()">Alterar senha</button>
     </div>
     <p class="hint-pwa" id="hint-pwa"></p>
   </div>
@@ -205,6 +205,9 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
       <p class="logo-sub">Alterar Senha</p>
     </div>
     <div class="card">
+      <div id="troca-obrigatoria-aviso" class="oculto" style="padding:12px 14px;border-radius:var(--r-sm);background:var(--k-green-dim);border:1px solid rgba(222,208,172,.3);color:var(--k-green);font-size:13px;font-weight:500;line-height:1.5">
+        🔒 Por segurança, defina uma nova senha antes de continuar.
+      </div>
       <div class="campo"><label>Email</label><input type="email" id="s-email" placeholder="seu@email.com" inputmode="email"></div>
       <div class="campo"><label>Senha atual</label><input type="password" id="s-atual" placeholder="••••••••"></div>
       <div class="campo"><label>Nova senha</label><input type="password" id="s-nova" placeholder="Mínimo 6 caracteres"></div>
@@ -570,6 +573,14 @@ function efetuarLogin() {
       App.usuario=res;
       if(lembrar){salvarCredenciais(email,senha);try{var r=JSON.parse(localStorage.getItem(LS_KEY)||'{}');r.nome=res.nome;localStorage.setItem(LS_KEY,JSON.stringify(r));}catch(e){}}
       else{try{localStorage.removeItem(LS_KEY);}catch(e){}}
+      if(res.precisaTrocarSenha){
+        _trocaSenhaObrigatoria=true;
+        document.getElementById('s-email').value=res.email;
+        document.getElementById('troca-obrigatoria-aviso').classList.remove('oculto');
+        mostrarTela('tela-senha');
+        return;
+      }
+      _trocaSenhaObrigatoria=false;
       entrarDashboard();
     })
     .catch(function(err){btn.disabled=false;btn.querySelector('.btn-txt').classList.remove('oculto');btn.querySelector('.btn-load').classList.add('oculto');erroEl.textContent='Erro: '+(err?err.message:'tente novamente');erroEl.classList.remove('oculto');});
@@ -647,7 +658,13 @@ function toggleMes(headerEl, idx, elId) {
 }
 
 // ══ SENHA ════════════════════════════════════════════════════
-function mostrarTrocarSenha(){if(App.usuario)document.getElementById('s-email').value=App.usuario.email;mostrarTela('tela-senha');}
+var _trocaSenhaObrigatoria = false;
+function mostrarTrocarSenha(){
+  _trocaSenhaObrigatoria=false;
+  document.getElementById('troca-obrigatoria-aviso').classList.add('oculto');
+  if(App.usuario)document.getElementById('s-email').value=App.usuario.email;
+  mostrarTela('tela-senha');
+}
 function mudarSenha(){
   var email=document.getElementById('s-email').value.trim(),atual=document.getElementById('s-atual').value,nova=document.getElementById('s-nova').value,conf=document.getElementById('s-conf').value,msgEl=document.getElementById('s-msg');
   msgEl.className='msg-erro';msgEl.classList.remove('oculto');
@@ -656,7 +673,19 @@ function mudarSenha(){
   if(nova.length<6){msgEl.textContent='Mínimo 6 caracteres.';return;}
   msgEl.className='';msgEl.textContent='Aguarde...';
   api('alterarSenha',{email:email,senhaAtual:atual,novaSenha:nova})
-    .then(function(res){if(res.erro){msgEl.className='msg-erro';msgEl.textContent=res.erro;}else{msgEl.className='msg-ok';msgEl.textContent='✅ Senha alterada!';try{var r=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(r&&r.email===email){r.senha=nova;localStorage.setItem(LS_KEY,JSON.stringify(r));}}catch(e){}setTimeout(function(){mostrarTela('tela-login');msgEl.classList.add('oculto');['s-email','s-atual','s-nova','s-conf'].forEach(function(id){document.getElementById(id).value='';});},2000);}})
+    .then(function(res){
+      if(res.erro){msgEl.className='msg-erro';msgEl.textContent=res.erro;return;}
+      msgEl.className='msg-ok';msgEl.textContent='✅ Senha alterada!';
+      try{var r=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(r&&r.email===email){r.senha=nova;localStorage.setItem(LS_KEY,JSON.stringify(r));}}catch(e){}
+      if(_trocaSenhaObrigatoria){
+        _trocaSenhaObrigatoria=false;
+        document.getElementById('troca-obrigatoria-aviso').classList.add('oculto');
+        msgEl.textContent='✅ Senha alterada! Entrando...';
+        setTimeout(function(){msgEl.classList.add('oculto');['s-atual','s-nova','s-conf'].forEach(function(id){document.getElementById(id).value='';});entrarDashboard();},1200);
+        return;
+      }
+      setTimeout(function(){mostrarTela('tela-login');msgEl.classList.add('oculto');['s-email','s-atual','s-nova','s-conf'].forEach(function(id){document.getElementById(id).value='';});},2000);
+    })
     .catch(function(err){msgEl.className='msg-erro';msgEl.textContent='Erro: '+(err?err.message:'tente novamente');});
 }
 
@@ -1065,3 +1094,4 @@ document.addEventListener('keydown',function(e){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 </body>
 </html>
+
