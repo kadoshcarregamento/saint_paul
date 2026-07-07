@@ -139,6 +139,8 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 .qr-gerado-wrap{background:#fff;border-radius:16px;padding:20px;display:flex;align-items:center;justify-content:center}
 .vaga-existente-badge{background:var(--bg-input);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--txt-sub)}
 .vagas-existentes-linha{display:flex;flex-wrap:wrap;gap:8px}
+.vaga-gerenciar-item{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.vaga-gerenciar-nome{font-size:15px;font-weight:700;color:var(--k-green)}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:500}
 .overlay.oculto{display:none!important}
 .overlay-box{display:flex;flex-direction:column;align-items:center;gap:14px}
@@ -294,7 +296,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
     <div class="menu-admin-grid">
       <button class="btn-menu-admin" onclick="abrirScanner()"><span class="ico">📷</span><span class="lbl">Registrar Leituras</span></button>
       <button class="btn-menu-admin" onclick="abrirTelaValorKwh()"><span class="ico">💰</span><span class="lbl">Valor do kWh do Mês</span></button>
-      <button class="btn-menu-admin" onclick="abrirTelaAdicionarVaga()"><span class="ico">➕</span><span class="lbl">Adicionar Vaga</span></button>
+      <button class="btn-menu-admin" onclick="abrirTelaAdicionarVaga()"><span class="ico">🅿️</span><span class="lbl">Gerenciar Vagas</span></button>
       <button class="btn-menu-admin" onclick="abrirModalCadastro()"><span class="ico">👤</span><span class="lbl">Cadastrar Morador</span></button>
       <button class="btn-menu-admin" onclick="abrirTelaHistoricoAdmin()" style="grid-column:span 2"><span class="ico">📊</span><span class="lbl">Histórico por Apartamento</span></button>
     </div>
@@ -360,7 +362,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 <div id="tela-adicionar-vaga" class="tela">
   <header class="app-header">
     <img src="https://raw.githubusercontent.com/kadoshcarregamento/kadosh/d4f52f23e72d21516bc1c69743b8cf78b63a93e1/Logo_kadosh512.png" class="hdr-logo-img" alt="Kadosh">
-    <div class="hdr-titulo">Adicionar Vaga<span>Carros Elétricos · Kadosh</span></div>
+    <div class="hdr-titulo">Gerenciar Vagas<span>Carros Elétricos · Kadosh</span></div>
     <div class="hdr-dir"><button class="btn-sair" onclick="mostrarTela('tela-admin')">← Voltar</button></div>
   </header>
   <div class="login-scroll" id="av-form-wrap">
@@ -371,12 +373,12 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
         </select>
       </div>
       <div class="campo oculto" id="av-existentes-wrap">
-        <label>Vagas já cadastradas</label>
-        <div class="vagas-existentes-linha" id="av-existentes"></div>
+        <label>Vagas cadastradas</label>
+        <div id="av-existentes" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
       <div id="av-erro" class="msg-erro oculto"></div>
       <button class="btn-primary" id="btn-av-salvar" onclick="salvarVagaNova()">
-        <span class="btn-txt">Adicionar Vaga</span>
+        <span class="btn-txt">➕ Adicionar Vaga</span>
         <span class="btn-load oculto">Aguarde...</span>
       </button>
     </div>
@@ -415,6 +417,17 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
     </div>
     <div class="campo"><label>Confirmar email</label>
       <input type="email" id="cad-email2" placeholder="Repita o email" inputmode="email">
+    </div>
+    <div class="campo">
+      <label>Este morador...</label>
+      <label class="check-label" style="align-items:flex-start;gap:10px;padding:10px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px">
+        <input type="radio" name="cad-tipo" value="novo" checked style="margin-top:2px">
+        <span><b style="color:var(--txt)">É novo no prédio</b><br><span style="font-size:12px;color:var(--txt-sub)">Não vê o histórico/custos anteriores do apartamento</span></span>
+      </label>
+      <label class="check-label" style="align-items:flex-start;gap:10px;padding:10px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;margin-top:8px">
+        <input type="radio" name="cad-tipo" value="existente" style="margin-top:2px">
+        <span><b style="color:var(--txt)">Já mora no apartamento</b><br><span style="font-size:12px;color:var(--txt-sub)">Cônjuge/familiar de quem já usa o sistema — vê todo o histórico da unidade</span></span>
+      </label>
     </div>
     <div id="cad-msg" class="oculto"></div>
     <button class="btn-primary" id="btn-cad-salvar" onclick="cadastrarUsuario()" style="font-size:20px">
@@ -539,17 +552,26 @@ function entrarDashboard() {
 }
 
 function carregarConsumos() {
-  renderConsumosEm('consumos-lista', String(App.usuario.apartamento));
+  var el = document.getElementById('consumos-lista');
+  el.innerHTML = '<div class="hist-vazio">Carregando...</div>';
+  api('obterMeusConsumos', { email: App.usuario.email })
+    .then(function(res) { renderConsumosResultado('consumos-lista', res); })
+    .catch(function() { el.innerHTML = '<div class="hist-vazio">Falha ao carregar.</div>'; });
 }
 
 function renderConsumosEm(elId, apartamento) {
   var el = document.getElementById(elId);
   el.innerHTML = '<div class="hist-vazio">Carregando...</div>';
   api('obterConsumosMensais', { apartamento: apartamento })
-    .then(function(res) {
-      if (!res || res.erro) { el.innerHTML = '<div class="hist-vazio">Erro ao carregar.</div>'; return; }
-      if (!res.meses || !res.meses.length) { el.innerHTML = '<div class="hist-vazio">Nenhuma leitura registrada ainda.</div>'; return; }
-      el.innerHTML = res.meses.map(function(m, idx) {
+    .then(function(res) { renderConsumosResultado(elId, res); })
+    .catch(function() { el.innerHTML = '<div class="hist-vazio">Falha ao carregar.</div>'; });
+}
+
+function renderConsumosResultado(elId, res) {
+  var el = document.getElementById(elId);
+  if (!res || res.erro) { el.innerHTML = '<div class="hist-vazio">Erro ao carregar.</div>'; return; }
+  if (!res.meses || !res.meses.length) { el.innerHTML = '<div class="hist-vazio">Nenhuma leitura registrada ainda.</div>'; return; }
+  el.innerHTML = res.meses.map(function(m, idx) {
         var custoHtml = m.custoTotal != null
           ? '<div class="mes-custo">R$ ' + fmtBR(m.custoTotal, 2) + '</div>'
           : '<div class="mes-aguardando">Aguardando valor do kWh</div>';
@@ -579,8 +601,6 @@ function renderConsumosEm(elId, apartamento) {
           '<div class="mes-detalhe" id="mes-det-' + elId + '-' + idx + '">' + itensHtml + '</div>' +
         '</div>';
       }).join('');
-    })
-    .catch(function() { el.innerHTML = '<div class="hist-vazio">Falha ao carregar.</div>'; });
 }
 function toggleMes(headerEl, idx, elId) {
   var el = document.getElementById('mes-det-' + elId + '-' + idx);
@@ -633,6 +653,8 @@ function abrirModalCadastro() {
   document.getElementById('cad-nome').value  = '';
   document.getElementById('cad-email').value = '';
   document.getElementById('cad-email2').value = '';
+  var radioNovo = document.querySelector('input[name="cad-tipo"][value="novo"]');
+  if (radioNovo) radioNovo.checked = true;
   var msg = document.getElementById('cad-msg');
   msg.textContent = ''; msg.className = 'oculto';
   var btn = document.getElementById('btn-cad-salvar');
@@ -656,6 +678,8 @@ function cadastrarUsuario() {
   var nome   = document.getElementById('cad-nome').value.trim();
   var email  = document.getElementById('cad-email').value.trim();
   var email2 = document.getElementById('cad-email2').value.trim();
+  var tipoSel = document.querySelector('input[name="cad-tipo"]:checked');
+  var moradorExistente = tipoSel && tipoSel.value === 'existente';
   var msg    = document.getElementById('cad-msg');
   var btn    = document.getElementById('btn-cad-salvar');
 
@@ -669,7 +693,7 @@ function cadastrarUsuario() {
   btn.querySelector('.btn-txt').classList.add('oculto');
   btn.querySelector('.btn-load').classList.remove('oculto');
 
-  api('cadastrarUsuarioAdmin', { apartamento: apto, nome: nome, email: email })
+  api('cadastrarUsuarioAdmin', { apartamento: apto, nome: nome, email: email, moradorExistente: moradorExistente })
     .then(function(res) {
       btn.disabled = false;
       btn.querySelector('.btn-txt').classList.remove('oculto');
@@ -849,8 +873,19 @@ function carregarVagasExistentes() {
   el.innerHTML = 'Carregando...';
   api('getVagasApartamento', { apartamento: apto }).then(function(res) {
     if (!res || res.erro || !res.vagas || !res.vagas.length) { el.innerHTML = '<span class="vaga-existente-badge">Nenhuma vaga cadastrada ainda</span>'; return; }
-    el.innerHTML = res.vagas.map(function(v) { return '<span class="vaga-existente-badge">Vaga ' + v.numero + '</span>'; }).join('');
+    el.innerHTML = res.vagas.map(function(v) {
+      return '<div class="vaga-gerenciar-item">' +
+        '<span class="vaga-gerenciar-nome">Vaga ' + v.numero + '</span>' +
+        '<button class="btn-remover" data-key="' + v.vagaKey + '" onclick="desativarVaga(this.dataset.key)">Desativar</button>' +
+      '</div>';
+    }).join('');
   });
+}
+function desativarVaga(vagaKey) {
+  if (!confirm('Desativar a ' + vagaKey.replace('VAGA_','Vaga ').replace('_',' · Apto ') + '? O histórico de leituras é preservado, mas ela some da lista de vagas ativas e o número fica disponível para uma vaga nova.')) return;
+  api('desativarVagaAdmin', { vagaId: vagaKey })
+    .then(function(res) { if (res && res.erro) { alert('Erro: ' + res.erro); return; } carregarVagasExistentes(); })
+    .catch(function() { alert('Falha ao desativar. Tente novamente.'); });
 }
 function salvarVagaNova() {
   var apto = document.getElementById('av-apto').value;
