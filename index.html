@@ -32,8 +32,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 #tela-login,#tela-senha{background:var(--bg);background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(222,208,172,.15) 0%,transparent 70%);align-items:stretch}
 .login-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(var(--sat) + 20px) 24px calc(var(--sab) + 16px);display:flex;flex-direction:column;align-items:center;gap:16px}
 .logo-block{text-align:center}
-.logo-img{width:100px;height:100px;border-radius:14px;object-fit:contain;display:block;margin:0 auto 16px;box-shadow:0 0 0 1px rgba(222,208,172,.2),0 0 32px rgba(222,208,172,.2),0 8px 32px rgba(0,0,0,.5);animation:logoPulse 4s ease-in-out infinite}
-@keyframes logoPulse{0%,100%{box-shadow:0 0 0 1px rgba(222,208,172,.2),0 0 32px rgba(222,208,172,.2),0 8px 32px rgba(0,0,0,.5)}50%{box-shadow:0 0 0 1px rgba(222,208,172,.4),0 0 48px rgba(222,208,172,.35),0 8px 32px rgba(0,0,0,.5)}}
+.logo-img{width:100px;height:100px;border-radius:14px;object-fit:contain;display:block;margin:0 auto 16px}
 .logo-sub{font-size:18px;font-weight:500;color:var(--txt-sub);letter-spacing:.08em;text-transform:uppercase}
 .card{width:100%;background:var(--bg-card);border-radius:var(--r);border:1px solid var(--border);padding:16px 16px;display:flex;flex-direction:column;gap:10px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .campo{display:flex;flex-direction:column;gap:8px}
@@ -68,7 +67,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 .msg-erro{padding:14px 16px;border-radius:var(--r-sm);background:rgba(255,77,77,.1);border:1px solid rgba(255,77,77,.25);color:#ff8080;font-size:14px;font-weight:500;line-height:1.5}
 .msg-ok{padding:14px 16px;border-radius:var(--r-sm);background:var(--k-green-dim);border:1px solid rgba(222,208,172,.25);color:var(--k-green);font-size:14px;font-weight:500}
 .app-header{background:rgba(13,13,13,.9);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--border);padding-top:calc(var(--sat) + 12px);padding-bottom:12px;padding-left:calc(var(--sal) + 16px);padding-right:calc(var(--sar) + 16px);display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
-.hdr-logo-img{width:50px;height:50px;border-radius:10px;object-fit:contain;flex-shrink:0;border:1px solid rgba(222,208,172,.2)}
+.hdr-logo-img{width:50px;height:50px;border-radius:10px;object-fit:contain;flex-shrink:0}
 .hdr-titulo{flex:1;font-family:var(--f-body);font-size:16px;font-weight:600;color:var(--txt-sub);line-height:1.4;letter-spacing:.02em}
 .hdr-titulo span{display:block;color:var(--k-green);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
 .hdr-dir{display:flex;align-items:center;gap:10px;flex-shrink:0}
@@ -164,7 +163,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 <div id="tela-login" class="tela ativa">
   <div class="login-scroll">
     <div class="logo-block">
-      <img src="icon-512.png" class="logo-img" alt="Kadosh EV">
+      <img src="icon-512.png" class="logo-img" alt="St. Paul de Vence">
       <p class="logo-sub">Carregamento de Veículos Elétricos</p>
     </div>
     <div class="card">
@@ -202,7 +201,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 <div id="tela-senha" class="tela">
   <div class="login-scroll">
     <div class="logo-block">
-      <img src="icon-512.png" class="logo-img" alt="Kadosh EV">
+      <img src="icon-512.png" class="logo-img" alt="St. Paul de Vence">
       <p class="logo-sub">Alterar Senha</p>
     </div>
     <div class="card">
@@ -220,8 +219,8 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 <!-- DASHBOARD (MORADOR) -->
 <div id="tela-dash" class="tela">
   <header class="app-header">
-    <img src="icon-512.png" class="hdr-logo-img" alt="Kadosh">
-    <div class="hdr-titulo">Sistema de registro<span>Carros Elétricos · Kadosh</span></div>
+    <img src="icon-512.png" class="hdr-logo-img" alt="St. Paul de Vence">
+    <div class="hdr-titulo">Sistema de registro<span>Carros Elétricos · St. Paul de Vence</span></div>
     <div class="hdr-dir">
       <button class="btn-sair oculto" id="btn-admin-hdr" onclick="mostrarTela('tela-admin')" style="background:rgba(222,208,172,.1);border-color:rgba(222,208,172,.3);color:var(--k-green)">⚙️</button>
       <button class="btn-sair" onclick="fazerLogout()">Sair</button>
@@ -249,8 +248,8 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 <!-- SCANNER QR (ADMIN — REGISTRAR LEITURA) -->
 <div id="tela-qr" class="tela">
   <header class="app-header">
-    <img src="icon-512.png" class="hdr-logo-img" alt="Kadosh">
-    <div class="hdr-titulo">Registrar Leituras<span>Carros Elétricos · Kadosh</span></div>
+    <img src="icon-512.png" class="hdr-logo-img" alt="St. Paul de Vence">
+    <div class="hdr-titulo">Registrar Leituras<span>Carros Elétricos · St. Paul de Vence</span></div>
     <div class="hdr-dir"><button class="btn-sair" onclick="fecharScanner()">✔ Concluir</button></div>
   </header>
   <div class="qr-scroll">
@@ -272,8 +271,8 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 <!-- REGISTRAR LEITURA (após escanear) -->
 <div id="tela-registrar-leitura" class="tela">
   <header class="app-header">
-    <img src="icon-512.png" class="hdr-logo-img" alt="Kadosh">
-    <div class="hdr-titulo">Registrar Leitura<span>Carros Elétricos · Kadosh</span></div>
+    <img src="icon-512.png" class="hdr-logo-img" alt="St. Paul de Vence">
+    <div class="hdr-titulo">Registrar Leitura<span>Carros Elétricos · St. Paul de Vence</span></div>
     <div class="hdr-dir"><button class="btn-sair" onclick="voltarParaScanner()">← Voltar</button></div>
   </header>
   <div class="login-scroll">
@@ -297,8 +296,8 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 <!-- ADMIN — MENU -->
 <div id="tela-admin" class="tela">
   <header class="app-header">
-    <img src="icon-512.png" class="hdr-logo-img" alt="Kadosh">
-    <div class="hdr-titulo">Administração<span>Carros Elétricos · Kadosh</span></div>
+    <img src="icon-512.png" class="hdr-logo-img" alt="St. Paul de Vence">
+    <div class="hdr-titulo">Administração<span>Carros Elétricos · St. Paul de Vence</span></div>
     <div class="hdr-dir"><button class="btn-sair" onclick="mostrarTela('tela-dash')">← Voltar</button></div>
   </header>
   <div class="tela-admin-scroll">
@@ -317,8 +316,8 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 <!-- ADMIN — VALOR DO KWH -->
 <div id="tela-valor-kwh" class="tela">
   <header class="app-header">
-    <img src="icon-512.png" class="hdr-logo-img" alt="Kadosh">
-    <div class="hdr-titulo">Valor do kWh do Mês<span>Carros Elétricos · Kadosh</span></div>
+    <img src="icon-512.png" class="hdr-logo-img" alt="St. Paul de Vence">
+    <div class="hdr-titulo">Valor do kWh do Mês<span>Carros Elétricos · St. Paul de Vence</span></div>
     <div class="hdr-dir"><button class="btn-sair" onclick="mostrarTela('tela-admin')">← Voltar</button></div>
   </header>
   <div class="login-scroll">
@@ -349,8 +348,8 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 <!-- ADMIN — HISTÓRICO POR APARTAMENTO -->
 <div id="tela-historico-admin" class="tela">
   <header class="app-header">
-    <img src="icon-512.png" class="hdr-logo-img" alt="Kadosh">
-    <div class="hdr-titulo">Histórico por Apartamento<span>Carros Elétricos · Kadosh</span></div>
+    <img src="icon-512.png" class="hdr-logo-img" alt="St. Paul de Vence">
+    <div class="hdr-titulo">Histórico por Apartamento<span>Carros Elétricos · St. Paul de Vence</span></div>
     <div class="hdr-dir"><button class="btn-sair" onclick="mostrarTela('tela-admin')">← Voltar</button></div>
   </header>
   <div class="dash-main">
@@ -370,8 +369,8 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 <!-- ADMIN — ADICIONAR VAGA -->
 <div id="tela-adicionar-vaga" class="tela">
   <header class="app-header">
-    <img src="icon-512.png" class="hdr-logo-img" alt="Kadosh">
-    <div class="hdr-titulo">Gerenciar Vagas<span>Carros Elétricos · Kadosh</span></div>
+    <img src="icon-512.png" class="hdr-logo-img" alt="St. Paul de Vence">
+    <div class="hdr-titulo">Gerenciar Vagas<span>Carros Elétricos · St. Paul de Vence</span></div>
     <div class="hdr-dir"><button class="btn-sair" onclick="mostrarTela('tela-admin')">← Voltar</button></div>
   </header>
   <div class="login-scroll" id="av-form-wrap">
