@@ -130,16 +130,12 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 .hist-vaga-tag{font-size:11px;font-weight:700;color:var(--k-green);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
 .hist-data{font-size:12px;color:var(--txt);font-weight:500;white-space:nowrap}
 .hist-leitura{font-size:11px;color:var(--txt-sub);margin-bottom:4px}
-.hist-dir-wrap{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:110px}
-.hist-preco-bloco{display:flex;flex-direction:column;align-items:center}
-.hist-preco-valor{font-family:var(--f-display);font-size:22px;color:var(--txt);letter-spacing:.02em;line-height:1}
-.hist-preco-label{font-size:10px;color:var(--txt-sub);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
-.hist-consumo{display:flex;flex-direction:column;align-items:center}
-.hist-kwh{font-family:var(--f-display);font-weight:700;color:var(--k-green);font-size:26px;letter-spacing:.02em;line-height:1}
-.hist-kwh-unit{font-size:13px;font-weight:600;color:var(--k-green);line-height:1;margin-top:2px}
-.hist-badge{font-size:11px;font-weight:600;padding:6px 0;border-radius:20px;white-space:nowrap;width:100%;text-align:center}
-.hist-badge.ok{background:var(--k-green-dim);color:var(--k-green);border:1px solid rgba(59,205,192,.2)}
-.hist-badge.aguardando{background:rgba(255,200,0,.1);color:#ffc800;border:1px solid rgba(255,200,0,.2)}
+.hist-consumo-linha{font-size:13px;color:var(--k-green);font-weight:700;margin-top:6px}
+.hist-dir-wrap{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:100px}
+.hist-preco-bloco{display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.03);border-radius:8px;padding:8px 6px}
+.hist-preco-valor{font-family:var(--f-display);font-size:16px;color:var(--txt);letter-spacing:.02em;line-height:1}
+.hist-preco-valor.destaque{color:var(--k-green)}
+.hist-preco-label{font-size:9px;color:var(--txt-sub);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
 .qr-gerado-wrap{background:#fff;border-radius:16px;padding:20px;display:flex;align-items:center;justify-content:center}
 .vaga-existente-badge{background:var(--bg-input);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--txt-sub)}
 .vagas-existentes-linha{display:flex;flex-wrap:wrap;gap:8px}
@@ -553,9 +549,8 @@ function renderConsumosEm(elId, apartamento) {
           ? '<div class="mes-custo">R$ ' + fmtBR(m.custoTotal, 2) + '</div>'
           : '<div class="mes-aguardando">Aguardando valor do kWh</div>';
         var precoLabel = m.valorKwh != null ? ('R$ ' + fmtBR(m.valorKwh, 2)) : '–';
-        var badgeCls = m.valorKwh != null ? 'ok' : 'aguardando';
-        var badgeTxt = m.valorKwh != null ? 'Concluído' : 'Aguardando valor';
         var itensHtml = m.itens.map(function(it) {
+          var custoLabel = it.custo != null ? ('R$ ' + fmtBR(it.custo, 2)) : '–';
           return '<div class="hist-item">' +
             '<div class="hist-esq">' +
               '<div class="hist-vaga-tag">Vaga ' + it.vaga + '</div>' +
@@ -563,11 +558,11 @@ function renderConsumosEm(elId, apartamento) {
               '<div class="hist-leitura">Leitura: ' + fmtBR(it.leituraAnterior,2) + ' kWh</div>' +
               '<div class="hist-data">Fim: ' + (it.dataAtual||'–') + '</div>' +
               '<div class="hist-leitura">Leitura: ' + fmtBR(it.leituraAtual,2) + ' kWh</div>' +
+              '<div class="hist-consumo-linha">Consumo: ' + fmtBR(it.consumo,2) + ' kWh</div>' +
             '</div>' +
             '<div class="hist-dir-wrap">' +
+              '<div class="hist-preco-bloco"><div class="hist-preco-valor destaque">' + custoLabel + '</div><div class="hist-preco-label">Custo Total</div></div>' +
               '<div class="hist-preco-bloco"><div class="hist-preco-valor">' + precoLabel + '</div><div class="hist-preco-label">Valor kWh</div></div>' +
-              '<div class="hist-consumo"><div class="hist-kwh">' + fmtBR(it.consumo,2) + '</div><div class="hist-kwh-unit">kWh</div></div>' +
-              '<div class="hist-badge ' + badgeCls + '">' + badgeTxt + '</div>' +
             '</div>' +
           '</div>';
         }).join('');
@@ -895,3 +890,4 @@ document.addEventListener('keydown',function(e){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 </body>
 </html>
+
