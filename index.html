@@ -149,6 +149,9 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 .vagas-existentes-linha{display:flex;flex-wrap:wrap;gap:8px}
 .vaga-gerenciar-item{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .vaga-gerenciar-nome{font-size:15px;font-weight:700;color:var(--k-green)}
+.apto-vagas-grupo{padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,.06)}
+.apto-vagas-grupo:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.apto-vagas-titulo{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:8px}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:500}
 .overlay.oculto{display:none!important}
 .overlay-box{display:flex;flex-direction:column;align-items:center;gap:14px}
@@ -418,6 +421,10 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
         <span class="btn-txt">➕ Adicionar Vaga</span>
         <span class="btn-load oculto">Aguarde...</span>
       </button>
+    </div>
+    <div class="card" style="gap:10px">
+      <div style="font-family:var(--f-display);font-size:20px;letter-spacing:.04em;color:var(--txt)">Vagas Cadastradas</div>
+      <div id="todas-vagas-lista"><div class="hist-vazio">Carregando...</div></div>
     </div>
   </div>
   <div class="login-scroll oculto" id="av-resultado-wrap">
@@ -1002,6 +1009,22 @@ function abrirTelaAdicionarVaga() {
     if (!res || res.erro || !res.apartamentos) { sel.innerHTML = '<option value="">Erro ao carregar</option>'; return; }
     sel.innerHTML = '<option value="">Selecione...</option>' + res.apartamentos.map(function(a) { return '<option value="' + a + '">' + a + '</option>'; }).join('');
   });
+  carregarTodasVagas();
+}
+function carregarTodasVagas() {
+  var el = document.getElementById('todas-vagas-lista');
+  el.innerHTML = '<div class="hist-vazio">Carregando...</div>';
+  api('listarTodasVagas', {}).then(function(res) {
+    if (!res || res.erro) { el.innerHTML = '<div class="hist-vazio">Erro ao carregar.</div>'; return; }
+    if (!res.apartamentos || !res.apartamentos.length) { el.innerHTML = '<div class="hist-vazio">Nenhuma vaga cadastrada ainda.</div>'; return; }
+    el.innerHTML = res.apartamentos.map(function(a) {
+      var badges = a.vagas.map(function(v) { return '<span class="vaga-existente-badge">Vaga ' + v.numero + '</span>'; }).join('');
+      return '<div class="apto-vagas-grupo">' +
+        '<div class="apto-vagas-titulo">Apto ' + a.apto + ' <span style="color:var(--txt-sub);font-weight:400">(' + a.vagas.length + (a.vagas.length===1?' vaga':' vagas') + ')</span></div>' +
+        '<div class="vagas-existentes-linha">' + badges + '</div>' +
+      '</div>';
+    }).join('');
+  }).catch(function() { el.innerHTML = '<div class="hist-vazio">Falha ao carregar.</div>'; });
 }
 function carregarVagasExistentes() {
   var apto = document.getElementById('av-apto').value;
@@ -1023,7 +1046,7 @@ function carregarVagasExistentes() {
 function desativarVaga(vagaKey) {
   if (!confirm('Desativar a ' + vagaKey.replace('VAGA_','Vaga ').replace('_',' · Apto ') + '? O histórico de leituras é preservado, mas ela some da lista de vagas ativas e o número fica disponível para uma vaga nova.')) return;
   api('desativarVagaAdmin', { vagaId: vagaKey })
-    .then(function(res) { if (res && res.erro) { alert('Erro: ' + res.erro); return; } carregarVagasExistentes(); })
+    .then(function(res) { if (res && res.erro) { alert('Erro: ' + res.erro); return; } carregarVagasExistentes(); carregarTodasVagas(); })
     .catch(function() { alert('Falha ao desativar. Tente novamente.'); });
 }
 function salvarVagaNova() {
@@ -1036,6 +1059,7 @@ function salvarVagaNova() {
     .then(function(res) {
       btn.disabled = false; btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
       if (!res || res.erro) { erroEl.textContent = res ? res.erro : 'Erro ao criar vaga.'; erroEl.classList.remove('oculto'); return; }
+      carregarTodasVagas();
       mostrarResultadoVaga(res);
     })
     .catch(function(err) {
@@ -1094,4 +1118,3 @@ document.addEventListener('keydown',function(e){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 </body>
 </html>
-
