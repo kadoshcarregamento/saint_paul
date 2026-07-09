@@ -1310,21 +1310,25 @@ function mostrarResultadoVaga(res) {
 
     var qrImg = new Image();
     qrImg.onload = function() {
-      // Monta uma imagem única: rótulo (apto + vaga) em cima, QR embaixo —
-      // assim, ao baixar ou imprimir, o texto já vem junto, sem precisar
-      // recortar/legendar depois.
+      // Monta uma imagem única: rótulo (apto + vaga) em cima E embaixo do
+      // QR — repetir embaixo ajuda a auditoria: se a foto do medidor pegar
+      // a etiqueta colada perto do relógio, a identificação aparece junto,
+      // mesmo que o enquadramento corte a parte de cima.
       var W = 560, labelH = 90, pad = 30;
+      var qrSize = W - pad * 2;
       var composite = document.createElement('canvas');
       composite.width = W;
-      composite.height = labelH + (W - pad * 2) + pad;
+      composite.height = labelH + qrSize + labelH;
       var ctx = composite.getContext('2d');
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, composite.width, composite.height);
       ctx.fillStyle = '#0d0d0d';
       ctx.textAlign = 'center';
       ctx.font = 'bold 30px Arial, sans-serif';
-      ctx.fillText('Apto ' + res.apto + ' - Vaga ' + res.numero, W / 2, 55);
-      ctx.drawImage(qrImg, pad, labelH, W - pad * 2, W - pad * 2);
+      var rotulo = 'Apto ' + res.apto + ' - Vaga ' + res.numero;
+      ctx.fillText(rotulo, W / 2, 55);
+      ctx.drawImage(qrImg, pad, labelH, qrSize, qrSize);
+      ctx.fillText(rotulo, W / 2, labelH + qrSize + 55);
       var compositeDataUrl = composite.toDataURL('image/png');
 
       _qrDataUrlAtual = compositeDataUrl;
@@ -1407,4 +1411,3 @@ document.addEventListener('keydown',function(e){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 </body>
 </html>
-
