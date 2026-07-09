@@ -719,7 +719,7 @@ function renderConsumosResultado(elId, res) {
         var precoLabel = m.valorKwh != null ? ('R$ ' + fmtBR(m.valorKwh, 2)) : '–';
         var itensHtml = m.itens.map(function(it) {
           var custoLabel = it.custo != null ? ('R$ ' + fmtBR(it.custo, 2)) : '–';
-          var fotoLink = it.fotoEmbedUrl ? '<a href="javascript:void(0)" onclick="abrirFotoModal(\'' + it.fotoEmbedUrl + '\',\'' + it.fotoUrl + '\')" class="hist-foto-link">📷 Ver foto do medidor</a>' : '';
+          var fotoLink = it.fotoFileId ? '<a href="javascript:void(0)" onclick="abrirFotoModal(\'' + it.fotoFileId + '\',\'' + it.fotoUrl + '\')" class="hist-foto-link">📷 Ver foto do medidor</a>' : '';
           return '<div class="hist-item">' +
             '<div class="hist-esq">' +
               '<div class="hist-vaga-tag">Vaga ' + it.vaga + '</div>' +
@@ -1322,14 +1322,26 @@ function fecharResultadoVaga() {
 }
 
 // ══ VISUALIZAR FOTO DO MEDIDOR (dentro do app) ═══════════════
-function abrirFotoModal(urlEmbed, urlDrive) {
+function abrirFotoModal(fileId, urlDrive) {
   var img = document.getElementById('foto-modal-img');
   img.style.display = 'none';
+  img.src = '';
   document.getElementById('foto-modal-loading').style.display = 'block';
   document.getElementById('foto-modal-loading').textContent = 'Carregando foto...';
-  img.src = urlEmbed;
-  document.getElementById('foto-modal-link-drive').href = urlDrive || urlEmbed;
+  document.getElementById('foto-modal-link-drive').href = urlDrive || '#';
   document.getElementById('modal-foto').classList.remove('oculto');
+
+  api('obterFotoBase64', { fileId: fileId })
+    .then(function(res) {
+      if (!res || res.erro || !res.base64) {
+        document.getElementById('foto-modal-loading').textContent = 'Não foi possível carregar a prévia. Toque abaixo para abrir no Drive.';
+        return;
+      }
+      img.src = 'data:' + (res.mimeType || 'image/jpeg') + ';base64,' + res.base64;
+    })
+    .catch(function() {
+      document.getElementById('foto-modal-loading').textContent = 'Não foi possível carregar a prévia. Toque abaixo para abrir no Drive.';
+    });
 }
 function fecharFotoModal() {
   document.getElementById('modal-foto').classList.add('oculto');
