@@ -576,6 +576,18 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
   </div>
 </div>
 
+<!-- MODAL VISUALIZAR FOTO DO MEDIDOR -->
+<div id="modal-foto" class="admin-modal-overlay oculto" onclick="if(event.target===this)fecharFotoModal()">
+  <div style="max-width:92vw;max-height:85vh;display:flex;flex-direction:column;align-items:center;gap:12px">
+    <div id="foto-modal-loading" style="color:#fff;font-size:14px">Carregando foto...</div>
+    <img id="foto-modal-img" src="" style="max-width:100%;max-height:70vh;border-radius:12px;display:none;box-shadow:0 8px 40px rgba(0,0,0,.6)" onload="document.getElementById('foto-modal-loading').style.display='none';this.style.display='block'" onerror="document.getElementById('foto-modal-loading').textContent='Não foi possível carregar a prévia. Toque abaixo para abrir no Drive.'">
+    <div style="display:flex;gap:10px;width:100%;max-width:340px">
+      <button class="btn-secundario" style="flex:1" onclick="fecharFotoModal()">Fechar</button>
+      <a id="foto-modal-link-drive" href="#" target="_blank" rel="noopener" class="btn-secundario" style="flex:1;display:flex;align-items:center;justify-content:center;text-decoration:none">Abrir no Drive</a>
+    </div>
+  </div>
+</div>
+
 <!-- OVERLAY -->
 <div id="overlay" class="overlay oculto">
   <div class="overlay-box">
@@ -707,7 +719,7 @@ function renderConsumosResultado(elId, res) {
         var precoLabel = m.valorKwh != null ? ('R$ ' + fmtBR(m.valorKwh, 2)) : '–';
         var itensHtml = m.itens.map(function(it) {
           var custoLabel = it.custo != null ? ('R$ ' + fmtBR(it.custo, 2)) : '–';
-          var fotoLink = it.fotoUrl ? '<a href="' + it.fotoUrl + '" target="_blank" rel="noopener" class="hist-foto-link">📷 Ver foto do medidor</a>' : '';
+          var fotoLink = it.fotoEmbedUrl ? '<a href="javascript:void(0)" onclick="abrirFotoModal(\'' + it.fotoEmbedUrl + '\',\'' + it.fotoUrl + '\')" class="hist-foto-link">📷 Ver foto do medidor</a>' : '';
           return '<div class="hist-item">' +
             '<div class="hist-esq">' +
               '<div class="hist-vaga-tag">Vaga ' + it.vaga + '</div>' +
@@ -1100,10 +1112,11 @@ function enviarLeituraMensal() {
 }
 
 // ══ FOTO DO MEDIDOR (opcional, após registrar a leitura) ═════
-var _vagaFotoPendente = null, _dataFotoPendente = null;
+var _vagaFotoPendente = null, _dataFotoPendente = null, _idLeituraPendente = null;
 function abrirTelaFotoMedidor(res) {
   _vagaFotoPendente = _vagaAtualLeitura;
   _dataFotoPendente = res.dataAtual;
+  _idLeituraPendente = res.idLeitura;
   var resumo = res.baseline
     ? 'Primeira leitura registrada (referência). Consumo aparecerá a partir da próxima leitura.'
     : 'Consumo do período: ' + fmtBR(res.consumo,2) + ' kWh.';
@@ -1146,7 +1159,7 @@ function enviarFotoAoServidor(base64) {
   fetch(GAS_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action: 'salvarFotoLeitura', vagaId: _vagaFotoPendente, data: _dataFotoPendente, imagemBase64: base64 })
+    body: JSON.stringify({ action: 'salvarFotoLeitura', vagaId: _vagaFotoPendente, data: _dataFotoPendente, imagemBase64: base64, idLeitura: _idLeituraPendente })
   })
   .then(function(r) { return r.json(); })
   .then(function(res) {
@@ -1308,6 +1321,21 @@ function fecharResultadoVaga() {
   abrirTelaAdicionarVaga();
 }
 
+// ══ VISUALIZAR FOTO DO MEDIDOR (dentro do app) ═══════════════
+function abrirFotoModal(urlEmbed, urlDrive) {
+  var img = document.getElementById('foto-modal-img');
+  img.style.display = 'none';
+  document.getElementById('foto-modal-loading').style.display = 'block';
+  document.getElementById('foto-modal-loading').textContent = 'Carregando foto...';
+  img.src = urlEmbed;
+  document.getElementById('foto-modal-link-drive').href = urlDrive || urlEmbed;
+  document.getElementById('modal-foto').classList.remove('oculto');
+}
+function fecharFotoModal() {
+  document.getElementById('modal-foto').classList.add('oculto');
+  document.getElementById('foto-modal-img').src = '';
+}
+
 document.addEventListener('keydown',function(e){
   if(e.key!=='Enter')return;
   var a=document.querySelector('.tela.ativa'); if(!a)return;
@@ -1320,3 +1348,4 @@ document.addEventListener('keydown',function(e){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 </body>
 </html>
+
