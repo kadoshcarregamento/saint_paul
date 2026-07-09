@@ -308,16 +308,15 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
   <header class="app-header">
     <img src="icon-512.png" class="hdr-logo-img" alt="St. Paul de Vence">
     <div class="hdr-titulo">Foto do Medidor<span>Carros Elétricos · St. Paul de Vence</span></div>
-    <div class="hdr-dir"><button class="btn-sair" onclick="voltarParaScanner()">✔ Concluir</button></div>
   </header>
   <div class="login-scroll">
     <div class="card" style="align-items:center;text-align:center">
       <div style="font-family:var(--f-display);font-size:26px;color:var(--k-green);letter-spacing:.04em">✅ Leitura Registrada!</div>
       <p id="foto-resumo" style="font-size:14px;color:var(--txt-sub);line-height:1.5">–</p>
+      <p style="font-size:13px;color:var(--txt-sub)">Envie a foto do medidor para concluir e seguir para a próxima vaga.</p>
       <input type="file" id="input-foto-medidor" accept="image/*" capture="environment" class="oculto" onchange="processarFotoSelecionada(this)">
       <button class="btn-primary" onclick="abrirCameraFoto()">📷 Enviar Foto do Medidor</button>
       <div id="foto-status" style="font-size:13px;min-height:18px"></div>
-      <button class="btn-link" onclick="voltarParaScanner()">Pular e continuar</button>
     </div>
   </div>
 </div>
@@ -578,13 +577,12 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 
 <!-- MODAL VISUALIZAR FOTO DO MEDIDOR -->
 <div id="modal-foto" class="admin-modal-overlay oculto" onclick="if(event.target===this)fecharFotoModal()">
-  <div style="max-width:92vw;max-height:85vh;display:flex;flex-direction:column;align-items:center;gap:12px">
+  <div style="max-width:92vw;max-height:85vh;display:flex;flex-direction:column;align-items:center;gap:14px">
+    <div id="foto-modal-titulo" style="color:var(--k-green);font-family:var(--f-display);font-size:20px;letter-spacing:.03em;text-align:center"></div>
     <div id="foto-modal-loading" style="color:#fff;font-size:14px">Carregando foto...</div>
-    <img id="foto-modal-img" src="" style="max-width:100%;max-height:70vh;border-radius:12px;display:none;box-shadow:0 8px 40px rgba(0,0,0,.6)" onload="document.getElementById('foto-modal-loading').style.display='none';this.style.display='block'" onerror="document.getElementById('foto-modal-loading').textContent='Não foi possível carregar a prévia. Toque abaixo para abrir no Drive.'">
-    <div style="display:flex;gap:10px;width:100%;max-width:340px">
-      <button class="btn-secundario" style="flex:1" onclick="fecharFotoModal()">Fechar</button>
-      <a id="foto-modal-link-drive" href="#" target="_blank" rel="noopener" class="btn-secundario" style="flex:1;display:flex;align-items:center;justify-content:center;text-decoration:none">Abrir no Drive</a>
-    </div>
+    <div id="foto-modal-erro" class="oculto" style="color:#ff8080;font-size:14px;text-align:center;max-width:300px;line-height:1.6">Foto indisponível no momento. Entre em contato com a administração.</div>
+    <img id="foto-modal-img" style="max-width:100%;max-height:62vh;border-radius:12px;display:none;box-shadow:0 8px 40px rgba(0,0,0,.6)">
+    <button class="btn-secundario" style="width:200px" onclick="fecharFotoModal()">Fechar</button>
   </div>
 </div>
 
@@ -719,7 +717,7 @@ function renderConsumosResultado(elId, res) {
         var precoLabel = m.valorKwh != null ? ('R$ ' + fmtBR(m.valorKwh, 2)) : '–';
         var itensHtml = m.itens.map(function(it) {
           var custoLabel = it.custo != null ? ('R$ ' + fmtBR(it.custo, 2)) : '–';
-          var fotoLink = it.fotoFileId ? '<a href="javascript:void(0)" onclick="abrirFotoModal(\'' + it.fotoFileId + '\',\'' + it.fotoUrl + '\')" class="hist-foto-link">📷 Ver foto do medidor</a>' : '';
+          var fotoLink = it.fotoFileId ? '<a href="javascript:void(0)" onclick="abrirFotoModal(\'' + it.fotoFileId + '\',\'Apto ' + it.apto + ' - Vaga ' + it.vaga + '\',\'' + it.dataAtual + '\')" class="hist-foto-link">📷 Ver foto do medidor</a>' : '';
           return '<div class="hist-item">' +
             '<div class="hist-esq">' +
               '<div class="hist-vaga-tag">Vaga ' + it.vaga + '</div>' +
@@ -1293,18 +1291,50 @@ function mostrarResultadoVaga(res) {
   var temp = document.createElement('div');
   new QRCode(temp, { text: res.qr, width: 500, height: 500, colorDark: '#0d0d0d', colorLight: '#ffffff' });
   setTimeout(function() {
-    var canvas = temp.querySelector('canvas');
-    var dataUrl = canvas ? canvas.toDataURL('image/png') : (temp.querySelector('img') ? temp.querySelector('img').src : null);
-    _qrDataUrlAtual = dataUrl;
-    _qrNomeArquivoAtual = res.qr + '.png';
-    var img = document.createElement('img');
-    img.src = dataUrl;
-    img.alt = 'QR Code ' + res.qr;
-    img.style.width = '220px';
-    img.style.height = '220px';
-    img.style.display = 'block';
-    container.innerHTML = '';
-    container.appendChild(img);
+    var qrCanvas = temp.querySelector('canvas');
+    var qrDataUrl = qrCanvas ? qrCanvas.toDataURL('image/png') : (temp.querySelector('img') ? temp.querySelector('img').src : null);
+    if (!qrDataUrl) return;
+
+    var qrImg = new Image();
+    qrImg.onload = function() {
+      // Monta uma imagem única: rótulo (apto + vaga) em cima, QR embaixo —
+      // assim, ao baixar ou imprimir, o texto já vem junto, sem precisar
+      // recortar/legendar depois.
+      var W = 560, labelH = 90, pad = 30;
+      var composite = document.createElement('canvas');
+      composite.width = W;
+      composite.height = labelH + (W - pad * 2) + pad;
+      var ctx = composite.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, composite.width, composite.height);
+      ctx.fillStyle = '#0d0d0d';
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 30px Arial, sans-serif';
+      ctx.fillText('Apto ' + res.apto + ' - Vaga ' + res.numero, W / 2, 55);
+      ctx.drawImage(qrImg, pad, labelH, W - pad * 2, W - pad * 2);
+      var compositeDataUrl = composite.toDataURL('image/png');
+
+      _qrDataUrlAtual = compositeDataUrl;
+      _qrNomeArquivoAtual = res.qr + '.png';
+
+      var imgEl = document.createElement('img');
+      imgEl.src = compositeDataUrl;
+      imgEl.alt = 'QR Code ' + res.qr;
+      imgEl.style.width = '240px';
+      imgEl.style.height = 'auto';
+      imgEl.style.display = 'block';
+      container.innerHTML = '';
+      container.appendChild(imgEl);
+
+      // Envia por email já com o rótulo embutido na própria imagem.
+      var base64 = compositeDataUrl.split(',')[1];
+      fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'enviarEmailQRImagem', apto: res.apto, numero: res.numero, imagemBase64: base64 })
+      }).catch(function() { /* email é um "bônus" - não trava o fluxo se falhar */ });
+    };
+    qrImg.src = qrDataUrl;
   }, 50);
 }
 function baixarQrGerado() {
@@ -1322,30 +1352,34 @@ function fecharResultadoVaga() {
 }
 
 // ══ VISUALIZAR FOTO DO MEDIDOR (dentro do app) ═══════════════
-function abrirFotoModal(fileId, urlDrive) {
+function abrirFotoModal(fileId, vagaLabel, dataLabel) {
   var img = document.getElementById('foto-modal-img');
   img.style.display = 'none';
-  img.src = '';
+  img.removeAttribute('src');
+  document.getElementById('foto-modal-titulo').textContent = (vagaLabel || '') + (dataLabel ? ' — ' + dataLabel : '');
+  document.getElementById('foto-modal-erro').classList.add('oculto');
   document.getElementById('foto-modal-loading').style.display = 'block';
   document.getElementById('foto-modal-loading').textContent = 'Carregando foto...';
-  document.getElementById('foto-modal-link-drive').href = urlDrive || '#';
   document.getElementById('modal-foto').classList.remove('oculto');
 
   api('obterFotoBase64', { fileId: fileId })
     .then(function(res) {
+      document.getElementById('foto-modal-loading').style.display = 'none';
       if (!res || res.erro || !res.base64) {
-        document.getElementById('foto-modal-loading').textContent = 'Não foi possível carregar a prévia. Toque abaixo para abrir no Drive.';
+        document.getElementById('foto-modal-erro').classList.remove('oculto');
         return;
       }
       img.src = 'data:' + (res.mimeType || 'image/jpeg') + ';base64,' + res.base64;
+      img.style.display = 'block';
     })
     .catch(function() {
-      document.getElementById('foto-modal-loading').textContent = 'Não foi possível carregar a prévia. Toque abaixo para abrir no Drive.';
+      document.getElementById('foto-modal-loading').style.display = 'none';
+      document.getElementById('foto-modal-erro').classList.remove('oculto');
     });
 }
 function fecharFotoModal() {
   document.getElementById('modal-foto').classList.add('oculto');
-  document.getElementById('foto-modal-img').src = '';
+  document.getElementById('foto-modal-img').removeAttribute('src');
 }
 
 document.addEventListener('keydown',function(e){
