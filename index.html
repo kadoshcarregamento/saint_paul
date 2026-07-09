@@ -717,7 +717,9 @@ function renderConsumosResultado(elId, res) {
         var precoLabel = m.valorKwh != null ? ('R$ ' + fmtBR(m.valorKwh, 2)) : '–';
         var itensHtml = m.itens.map(function(it) {
           var custoLabel = it.custo != null ? ('R$ ' + fmtBR(it.custo, 2)) : '–';
-          var fotoLink = it.fotoFileId ? '<a href="javascript:void(0)" onclick="abrirFotoModal(\'' + it.fotoFileId + '\',\'Apto ' + it.apto + ' - Vaga ' + it.vaga + '\',\'' + it.dataAtual + '\')" class="hist-foto-link">📷 Ver foto do medidor</a>' : '';
+          var vagaLabel = 'Apto ' + it.apto + ' - Vaga ' + it.vaga;
+          var fotoLinkInicio = it.fotoFileIdInicio ? '<a href="javascript:void(0)" onclick="abrirFotoModal(\'' + it.fotoFileIdInicio + '\',\'' + vagaLabel + '\',\'' + it.dataAnterior + ' (início)\')" class="hist-foto-link">📷 Foto início (' + it.dataAnterior + ')</a>' : '';
+          var fotoLinkFim = it.fotoFileId ? '<a href="javascript:void(0)" onclick="abrirFotoModal(\'' + it.fotoFileId + '\',\'' + vagaLabel + '\',\'' + it.dataAtual + ' (fim)\')" class="hist-foto-link">📷 Foto fim (' + it.dataAtual + ')</a>' : '';
           return '<div class="hist-item">' +
             '<div class="hist-esq">' +
               '<div class="hist-vaga-tag">Vaga ' + it.vaga + '</div>' +
@@ -726,7 +728,7 @@ function renderConsumosResultado(elId, res) {
               '<div class="hist-data">Fim: ' + (it.dataAtual||'–') + '</div>' +
               '<div class="hist-leitura">Leitura: ' + fmtBR(it.leituraAtual,2) + ' kWh</div>' +
               '<div class="hist-consumo-linha">Consumo: ' + fmtBR(it.consumo,2) + ' kWh</div>' +
-              fotoLink +
+              '<div style="display:flex;flex-direction:column;gap:2px">' + fotoLinkInicio + fotoLinkFim + '</div>' +
             '</div>' +
             '<div class="hist-dir-wrap">' +
               '<div class="hist-preco-bloco"><div class="hist-preco-valor destaque">' + custoLabel + '</div><div class="hist-preco-label">Custo Total</div></div>' +
