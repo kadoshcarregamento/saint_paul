@@ -139,6 +139,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
 .hist-data{font-size:12px;color:var(--txt);font-weight:500;white-space:nowrap}
 .hist-leitura{font-size:11px;color:var(--txt-sub);margin-bottom:4px}
 .hist-consumo-linha{font-size:13px;color:var(--k-green);font-weight:700;margin-top:6px}
+.hist-foto-link{display:inline-block;font-size:12px;color:var(--k-green);text-decoration:underline;margin-top:6px}
 .hist-dir-wrap{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:100px}
 .hist-preco-bloco{display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.03);border-radius:8px;padding:8px 6px}
 .hist-preco-valor{font-family:var(--f-display);font-size:16px;color:var(--txt);letter-spacing:.02em;line-height:1}
@@ -302,6 +303,25 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
   </div>
 </div>
 
+<!-- FOTO DO MEDIDOR (opcional, após registrar leitura) -->
+<div id="tela-foto-medidor" class="tela">
+  <header class="app-header">
+    <img src="icon-512.png" class="hdr-logo-img" alt="St. Paul de Vence">
+    <div class="hdr-titulo">Foto do Medidor<span>Carros Elétricos · St. Paul de Vence</span></div>
+    <div class="hdr-dir"><button class="btn-sair" onclick="voltarParaScanner()">✔ Concluir</button></div>
+  </header>
+  <div class="login-scroll">
+    <div class="card" style="align-items:center;text-align:center">
+      <div style="font-family:var(--f-display);font-size:26px;color:var(--k-green);letter-spacing:.04em">✅ Leitura Registrada!</div>
+      <p id="foto-resumo" style="font-size:14px;color:var(--txt-sub);line-height:1.5">–</p>
+      <input type="file" id="input-foto-medidor" accept="image/*" capture="environment" class="oculto" onchange="processarFotoSelecionada(this)">
+      <button class="btn-primary" onclick="abrirCameraFoto()">📷 Enviar Foto do Medidor</button>
+      <div id="foto-status" style="font-size:13px;min-height:18px"></div>
+      <button class="btn-link" onclick="voltarParaScanner()">Pular e continuar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ADMIN — MENU -->
 <div id="tela-admin" class="tela">
   <header class="app-header">
@@ -317,6 +337,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
       <button class="btn-menu-admin" onclick="abrirModalCadastro()"><span class="ico">👤</span><span class="lbl">Cadastrar Morador</span></button>
       <button class="btn-menu-admin" onclick="abrirTelaHistoricoAdmin()" style="grid-column:span 2"><span class="ico">📊</span><span class="lbl">Histórico por Apartamento</span></button>
       <button class="btn-menu-admin" onclick="abrirRelatorio('admin')" style="grid-column:span 2"><span class="ico">📩</span><span class="lbl">Relatório Mensal por Email</span></button>
+      <button class="btn-menu-admin" onclick="abrirTelaEmailAdministradora()" style="grid-column:span 2"><span class="ico">🏢</span><span class="lbl">Email da Administradora</span></button>
     </div>
     <div style="font-family:var(--f-display);font-size:20px;letter-spacing:.04em;color:var(--txt);margin-top:8px">Moradores</div>
     <div id="admin-lista"><div class="hist-vazio">Carregando...</div></div>
@@ -336,12 +357,64 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
       <p style="font-size:13px;color:var(--txt-sub);margin-bottom:14px" id="rel-descricao">Escolha os meses que quer incluir no relatório em Excel.</p>
       <div id="rel-meses-lista" style="display:flex;flex-direction:column;gap:8px"><div class="hist-vazio">Carregando...</div></div>
     </div>
+    <div class="card oculto" id="rel-formato-wrap" style="gap:0">
+      <div style="font-family:var(--f-display);font-size:18px;letter-spacing:.04em;color:var(--txt);margin-bottom:10px">Formato</div>
+      <div class="tipo-morador-opcao ativa" id="opcao-formato-detalhado" onclick="selecionarFormatoRelatorio('detalhado')">
+        <div class="tipo-morador-check"></div>
+        <div><b>Detalhado</b><div class="tipo-morador-sub">Por vaga, com subtotal por apartamento — para auditoria</div></div>
+      </div>
+      <div class="tipo-morador-opcao" id="opcao-formato-consolidado" onclick="selecionarFormatoRelatorio('consolidado')">
+        <div class="tipo-morador-check"></div>
+        <div><b>Consolidado</b><div class="tipo-morador-sub">1 linha por apartamento — para a administradora financeira</div></div>
+      </div>
+    </div>
+    <div class="card oculto" id="rel-destino-wrap" style="gap:0">
+      <div style="font-family:var(--f-display);font-size:18px;letter-spacing:.04em;color:var(--txt);margin-bottom:10px">Enviar para</div>
+      <label class="check-label" style="padding:10px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;margin-bottom:8px">
+        <input type="checkbox" id="rel-dest-admin" checked><span id="rel-dest-admin-label">Meu email</span>
+      </label>
+      <label class="check-label oculto" id="rel-dest-adm-wrap" style="padding:10px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px">
+        <input type="checkbox" id="rel-dest-administradora"><span id="rel-dest-administradora-label">Administradora</span>
+      </label>
+      <p class="oculto" id="rel-dest-vazio" style="font-size:12px;color:var(--txt-sub);margin-top:6px">Nenhum email de administradora cadastrado ainda — configure em "Email da Administradora" no menu admin.</p>
+    </div>
     <div id="rel-erro" class="msg-erro oculto"></div>
     <div id="rel-msg" class="msg-ok oculto"></div>
     <button class="btn-primary" id="btn-rel-enviar" onclick="enviarRelatorioEmail()">
       <span class="btn-txt">📩 Enviar por Email</span>
       <span class="btn-load oculto">Gerando relatório...</span>
     </button>
+  </div>
+</div>
+
+<!-- ADMIN — EMAIL DA ADMINISTRADORA -->
+<div id="tela-email-administradora" class="tela">
+  <header class="app-header">
+    <img src="icon-512.png" class="hdr-logo-img" alt="St. Paul de Vence">
+    <div class="hdr-titulo">Email da Administradora<span>Carros Elétricos · St. Paul de Vence</span></div>
+    <div class="hdr-dir"><button class="btn-sair" onclick="mostrarTela('tela-admin')">← Voltar</button></div>
+  </header>
+  <div class="login-scroll">
+    <div class="card">
+      <div class="campo"><label>Email atual (se houver)</label><div class="leitura-vaga-display" id="ea-atual">–</div></div>
+      <div class="campo">
+        <label>Email da administradora</label>
+        <input type="email" id="ea-email" placeholder="financeiro@administradora.com" inputmode="email" oninput="validarEmailAdministradora()">
+      </div>
+      <div class="campo">
+        <label>Confirme o email</label>
+        <input type="email" id="ea-email-conf" placeholder="Repita o email" inputmode="email" oninput="validarEmailAdministradora()">
+      </div>
+      <div id="ea-erro" class="msg-erro oculto"></div>
+      <div id="ea-msg" class="msg-ok oculto"></div>
+      <button class="btn-primary" id="btn-ea-salvar" onclick="salvarEmailAdministradora()" disabled>
+        <span class="btn-txt">Salvar Email</span>
+        <span class="btn-load oculto">Aguarde...</span>
+      </button>
+    </div>
+    <p style="font-size:13px;color:var(--txt-sub);line-height:1.7;padding:0 4px">
+      Esse email aparece como opção de destinatário na tela de Relatório Mensal — útil para mandar o relatório consolidado direto pra administradora financeira do condomínio.
+    </p>
   </div>
 </div>
 
@@ -634,6 +707,7 @@ function renderConsumosResultado(elId, res) {
         var precoLabel = m.valorKwh != null ? ('R$ ' + fmtBR(m.valorKwh, 2)) : '–';
         var itensHtml = m.itens.map(function(it) {
           var custoLabel = it.custo != null ? ('R$ ' + fmtBR(it.custo, 2)) : '–';
+          var fotoLink = it.fotoUrl ? '<a href="' + it.fotoUrl + '" target="_blank" rel="noopener" class="hist-foto-link">📷 Ver foto do medidor</a>' : '';
           return '<div class="hist-item">' +
             '<div class="hist-esq">' +
               '<div class="hist-vaga-tag">Vaga ' + it.vaga + '</div>' +
@@ -642,6 +716,7 @@ function renderConsumosResultado(elId, res) {
               '<div class="hist-data">Fim: ' + (it.dataAtual||'–') + '</div>' +
               '<div class="hist-leitura">Leitura: ' + fmtBR(it.leituraAtual,2) + ' kWh</div>' +
               '<div class="hist-consumo-linha">Consumo: ' + fmtBR(it.consumo,2) + ' kWh</div>' +
+              fotoLink +
             '</div>' +
             '<div class="hist-dir-wrap">' +
               '<div class="hist-preco-bloco"><div class="hist-preco-valor destaque">' + custoLabel + '</div><div class="hist-preco-label">Custo Total</div></div>' +
@@ -811,8 +886,16 @@ function reativarUsuario(email) {
 
 // ══ RELATÓRIO MENSAL (EXCEL POR EMAIL) ═══════════════════════
 var _relatorioContexto = 'admin';
+var _formatoRelatorioSelecionado = 'detalhado';
+var _emailAdministradoraAtual = null;
+function selecionarFormatoRelatorio(formato) {
+  _formatoRelatorioSelecionado = formato;
+  document.getElementById('opcao-formato-detalhado').classList.toggle('ativa', formato === 'detalhado');
+  document.getElementById('opcao-formato-consolidado').classList.toggle('ativa', formato === 'consolidado');
+}
 function abrirRelatorio(contexto) {
   _relatorioContexto = contexto;
+  _formatoRelatorioSelecionado = 'detalhado';
   document.getElementById('rel-erro').classList.add('oculto');
   document.getElementById('rel-msg').classList.add('oculto');
   document.getElementById('rel-meses-lista').innerHTML = '<div class="hist-vazio">Carregando...</div>';
@@ -821,12 +904,30 @@ function abrirRelatorio(contexto) {
   btn.querySelector('.btn-txt').classList.remove('oculto');
   btn.querySelector('.btn-load').classList.add('oculto');
 
+  var formatoWrap = document.getElementById('rel-formato-wrap');
+  var destinoWrap = document.getElementById('rel-destino-wrap');
+
   if (contexto === 'admin') {
     document.getElementById('rel-subtitulo').textContent = 'Selecione os meses';
-    document.getElementById('rel-descricao').textContent = 'Relatório com todos os apartamentos (linhas) e os meses escolhidos (colunas) — chega no email como tabela e também em anexo .csv (abre no Excel).';
+    document.getElementById('rel-descricao').textContent = 'Chega no email como tabela e também em anexo .csv (abre no Excel).';
+    selecionarFormatoRelatorio('detalhado');
+    formatoWrap.classList.remove('oculto');
+    destinoWrap.classList.remove('oculto');
+    document.getElementById('rel-dest-admin-label').textContent = 'Meu email (' + App.usuario.email + ')';
+    document.getElementById('rel-dest-admin').checked = true;
+    document.getElementById('rel-dest-administradora').checked = false;
+    api('getEmailAdministradora', {}).then(function(res) {
+      var temEmail = res && !res.erro && res.email;
+      _emailAdministradoraAtual = temEmail ? res.email : null;
+      document.getElementById('rel-dest-adm-wrap').classList.toggle('oculto', !temEmail);
+      document.getElementById('rel-dest-vazio').classList.toggle('oculto', !!temEmail);
+      if (temEmail) document.getElementById('rel-dest-administradora-label').textContent = 'Administradora (' + res.email + ')';
+    });
   } else {
     document.getElementById('rel-subtitulo').textContent = 'Selecione os meses';
-    document.getElementById('rel-descricao').textContent = 'Relatório do seu apartamento nos meses escolhidos — chega no email como tabela e também em anexo .csv (abre no Excel).';
+    document.getElementById('rel-descricao').textContent = 'Relatório do seu apartamento — chega no email como tabela e também em anexo .csv (abre no Excel).';
+    formatoWrap.classList.add('oculto');
+    destinoWrap.classList.add('oculto');
   }
 
   mostrarTela('tela-relatorio');
@@ -859,11 +960,18 @@ function enviarRelatorioEmail() {
   erroEl.classList.add('oculto'); msgEl.classList.add('oculto');
   if (!meses.length) { erroEl.textContent = 'Selecione ao menos um mês.'; erroEl.classList.remove('oculto'); return; }
 
-  btn.disabled = true; btn.querySelector('.btn-txt').classList.add('oculto'); btn.querySelector('.btn-load').classList.remove('oculto');
-
-  var chamada = _relatorioContexto === 'admin'
-    ? api('enviarRelatorioAdmin', { mesesSortKeys: meses, emailDestino: App.usuario.email })
-    : api('enviarRelatorioMorador', { email: App.usuario.email, mesesSortKeys: meses });
+  var chamada;
+  if (_relatorioContexto === 'admin') {
+    var emails = [];
+    if (document.getElementById('rel-dest-admin').checked) emails.push(App.usuario.email);
+    if (!document.getElementById('rel-dest-adm-wrap').classList.contains('oculto') && document.getElementById('rel-dest-administradora').checked && _emailAdministradoraAtual) emails.push(_emailAdministradoraAtual);
+    if (!emails.length) { erroEl.textContent = 'Selecione ao menos um destinatário.'; erroEl.classList.remove('oculto'); return; }
+    btn.disabled = true; btn.querySelector('.btn-txt').classList.add('oculto'); btn.querySelector('.btn-load').classList.remove('oculto');
+    chamada = api('enviarRelatorioAdmin', { mesesSortKeys: meses, emails: emails, modo: _formatoRelatorioSelecionado });
+  } else {
+    btn.disabled = true; btn.querySelector('.btn-txt').classList.add('oculto'); btn.querySelector('.btn-load').classList.remove('oculto');
+    chamada = api('enviarRelatorioMorador', { email: App.usuario.email, mesesSortKeys: meses });
+  }
 
   chamada.then(function(res) {
     btn.disabled = false; btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
@@ -875,6 +983,46 @@ function enviarRelatorioEmail() {
     erroEl.textContent = 'Falha: ' + (err ? err.message : 'tente novamente'); erroEl.classList.remove('oculto');
   });
 }
+
+// ══ ADMIN — EMAIL DA ADMINISTRADORA ══════════════════════════
+function abrirTelaEmailAdministradora() {
+  document.getElementById('ea-atual').textContent = '–';
+  document.getElementById('ea-email').value = '';
+  document.getElementById('ea-email-conf').value = '';
+  document.getElementById('ea-erro').classList.add('oculto');
+  document.getElementById('ea-msg').classList.add('oculto');
+  document.getElementById('btn-ea-salvar').disabled = true;
+  mostrarTela('tela-email-administradora');
+  api('getEmailAdministradora', {}).then(function(res) {
+    if (!res || res.erro) return;
+    document.getElementById('ea-atual').textContent = res.email || 'Ainda não definido';
+  });
+}
+function validarEmailAdministradora() {
+  var v1 = document.getElementById('ea-email').value.trim();
+  var v2 = document.getElementById('ea-email-conf').value.trim();
+  document.getElementById('btn-ea-salvar').disabled = !(v1 && v2 && v1.toLowerCase() === v2.toLowerCase());
+}
+function salvarEmailAdministradora() {
+  var v1 = document.getElementById('ea-email').value.trim();
+  var v2 = document.getElementById('ea-email-conf').value.trim();
+  var erroEl = document.getElementById('ea-erro'), msgEl = document.getElementById('ea-msg'), btn = document.getElementById('btn-ea-salvar');
+  erroEl.classList.add('oculto'); msgEl.classList.add('oculto');
+  if (v1.toLowerCase() !== v2.toLowerCase()) { erroEl.textContent = 'Os emails não coincidem.'; erroEl.classList.remove('oculto'); return; }
+  btn.disabled = true; btn.querySelector('.btn-txt').classList.add('oculto'); btn.querySelector('.btn-load').classList.remove('oculto');
+  api('definirEmailAdministradora', { email: v1, emailConfirmacao: v2 })
+    .then(function(res) {
+      btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
+      if (!res || res.erro) { erroEl.textContent = res ? res.erro : 'Erro ao salvar.'; erroEl.classList.remove('oculto'); validarEmailAdministradora(); return; }
+      msgEl.textContent = '✅ Email da administradora salvo: ' + res.email; msgEl.classList.remove('oculto');
+      document.getElementById('ea-atual').textContent = res.email;
+    })
+    .catch(function(err) {
+      btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
+      erroEl.textContent = 'Falha: ' + (err ? err.message : 'tente novamente'); erroEl.classList.remove('oculto'); validarEmailAdministradora();
+    });
+}
+
 
 // ══ ADMIN — HISTÓRICO POR APARTAMENTO ═══════════════════════
 function abrirTelaHistoricoAdmin() {
@@ -943,16 +1091,70 @@ function enviarLeituraMensal() {
     .then(function(res) {
       btn.disabled = false; btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
       if (!res || res.erro) { erroEl.textContent = res ? res.erro : 'Erro ao registrar.'; erroEl.classList.remove('oculto'); return; }
-      var msg = res.baseline
-        ? '✅ Primeira leitura registrada (referência). Consumo aparecerá a partir da próxima leitura.'
-        : '✅ Leitura registrada! Consumo do período: ' + fmtBR(res.consumo,2) + ' kWh.';
-      alert(msg);
-      voltarParaScanner();
+      abrirTelaFotoMedidor(res);
     })
     .catch(function(err) {
       btn.disabled = false; btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
       erroEl.textContent = 'Falha: ' + (err ? err.message : 'tente novamente'); erroEl.classList.remove('oculto');
     });
+}
+
+// ══ FOTO DO MEDIDOR (opcional, após registrar a leitura) ═════
+var _vagaFotoPendente = null, _dataFotoPendente = null;
+function abrirTelaFotoMedidor(res) {
+  _vagaFotoPendente = _vagaAtualLeitura;
+  _dataFotoPendente = res.dataAtual;
+  var resumo = res.baseline
+    ? 'Primeira leitura registrada (referência). Consumo aparecerá a partir da próxima leitura.'
+    : 'Consumo do período: ' + fmtBR(res.consumo,2) + ' kWh.';
+  document.getElementById('foto-resumo').textContent = resumo;
+  document.getElementById('foto-status').textContent = '';
+  document.getElementById('foto-status').className = '';
+  document.getElementById('input-foto-medidor').value = '';
+  mostrarTela('tela-foto-medidor');
+}
+function abrirCameraFoto() {
+  document.getElementById('input-foto-medidor').click();
+}
+function processarFotoSelecionada(inputEl) {
+  var file = inputEl.files[0];
+  if (!file) return;
+  document.getElementById('foto-status').className = '';
+  document.getElementById('foto-status').textContent = 'Preparando imagem...';
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var img = new Image();
+    img.onload = function() {
+      var maxW = 1000;
+      var scale = Math.min(1, maxW / img.width);
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      var base64 = dataUrl.split(',')[1];
+      enviarFotoAoServidor(base64);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function enviarFotoAoServidor(base64) {
+  var statusEl = document.getElementById('foto-status');
+  statusEl.className = ''; statusEl.textContent = 'Enviando foto...';
+  fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'salvarFotoLeitura', vagaId: _vagaFotoPendente, data: _dataFotoPendente, imagemBase64: base64 })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(res) {
+    if (!res || res.erro) { statusEl.className = 'msg-erro'; statusEl.textContent = res ? res.erro : 'Erro ao enviar foto.'; return; }
+    statusEl.className = 'msg-ok'; statusEl.textContent = '✅ Foto enviada e vinculada à leitura!';
+    setTimeout(voltarParaScanner, 1400);
+  })
+  .catch(function() { statusEl.className = 'msg-erro'; statusEl.textContent = 'Falha ao enviar a foto. Tente novamente.'; });
 }
 
 // ══ ADMIN — VALOR DO KWH ═════════════════════════════════════
