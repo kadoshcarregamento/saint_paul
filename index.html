@@ -509,7 +509,7 @@ body{height:100%;width:100%;font-family:var(--f-body);background:var(--bg);color
         <b style="color:var(--txt)">🤖 Android/PC:</b> use o botão abaixo para baixar.
       </p>
       <button class="btn-secundario" id="btn-av-baixar" onclick="baixarQrGerado()">⬇️ Baixar Imagem do QR</button>
-      <p style="font-size:13px;color:var(--txt-sub);line-height:1.6">Também enviamos por email para o(s) administrador(es) — mas salvar aqui garante que você tem o arquivo mesmo se o email não chegar.</p>
+      <p style="font-size:13px;color:var(--txt-sub);line-height:1.6">Também salvamos automaticamente no Drive, na pasta do apartamento (dentro de "QR_codes") — mas salvar aqui garante que você tem o arquivo mesmo se algo falhar.</p>
       <button class="btn-primary" onclick="fecharResultadoVaga()">➕ Adicionar Outra Vaga</button>
       <button class="btn-link" onclick="mostrarTela('tela-admin')">Concluir</button>
     </div>
@@ -1328,13 +1328,13 @@ function mostrarResultadoVaga(res) {
       container.innerHTML = '';
       container.appendChild(imgEl);
 
-      // Envia por email já com o rótulo embutido na própria imagem.
+      // Salva no Drive (Apto_XXX/QR_codes) já com o rótulo embutido na imagem.
       var base64 = compositeDataUrl.split(',')[1];
       fetch(GAS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'enviarEmailQRImagem', apto: res.apto, numero: res.numero, imagemBase64: base64 })
-      }).catch(function() { /* email é um "bônus" - não trava o fluxo se falhar */ });
+        body: JSON.stringify({ action: 'salvarQRCodeImagem', apto: res.apto, numero: res.numero, imagemBase64: base64 })
+      }).catch(function() { /* salvamento no Drive é um "bônus" - não trava o fluxo se falhar */ });
     };
     qrImg.src = qrDataUrl;
   }, 50);
