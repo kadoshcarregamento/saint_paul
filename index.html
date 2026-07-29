@@ -1323,14 +1323,26 @@ function carregarChamados() {
     if (!res || res.erro) { el.innerHTML = '<div class="hist-vazio">Erro ao carregar.</div>'; return; }
     if (!res.chamados || !res.chamados.length) { el.innerHTML = '<div class="hist-vazio">Nenhum chamado aberto ainda.</div>'; return; }
     el.innerHTML = res.chamados.map(function(c) {
-      var corStatus = c.status === 'Aberto' ? 'var(--k-green)' : 'var(--txt-sub)';
-      return '<div class="vaga-gerenciar-item">' +
-        '<div style="min-width:0"><div style="font-size:13px;font-weight:600;color:var(--txt)">' + c.assunto + '</div>' +
-        '<div style="font-size:11px;color:var(--txt-sub);margin-top:2px">' + c.data + '</div></div>' +
-        '<div style="font-size:11px;font-weight:700;color:' + corStatus + ';white-space:nowrap">' + c.status + '</div>' +
+      var corStatus = c.status === 'Aberto' ? 'var(--k-green)' : (c.status === 'Em Tratamento' ? '#ffc800' : 'var(--txt-sub)');
+      var podeReabrir = (c.status === 'Finalizado' || c.status === 'Cancelado');
+      var resposta = c.resposta ? '<div style="font-size:12px;color:var(--txt-sub);margin-top:4px;line-height:1.4">💬 ' + c.resposta + '</div>' : '';
+      var reabrirBtn = podeReabrir ? '<button class="btn-remover" style="margin-top:8px;color:var(--k-green);border-color:rgba(222,208,172,.3);background:rgba(222,208,172,.08)" data-num="' + c.numero + '" onclick="reabrirChamado(this.dataset.num)">↺ Reabrir</button>' : '';
+      return '<div class="vaga-gerenciar-item" style="flex-direction:column;align-items:stretch;gap:6px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">' +
+          '<div style="min-width:0"><div style="font-size:13px;font-weight:600;color:var(--txt)">' + c.assunto + '</div>' +
+          '<div style="font-size:11px;color:var(--txt-sub);margin-top:2px">' + c.numero + ' · ' + c.data + '</div></div>' +
+          '<div style="font-size:11px;font-weight:700;color:' + corStatus + ';white-space:nowrap">' + c.status + '</div>' +
+        '</div>' +
+        resposta + reabrirBtn +
       '</div>';
     }).join('');
   }).catch(function() { el.innerHTML = '<div class="hist-vazio">Falha ao carregar.</div>'; });
+}
+function reabrirChamado(numero) {
+  if (!confirm('Reabrir o chamado ' + numero + '?')) return;
+  api('reabrirChamadoSuporte', { numero: numero, quemReabriu: App.usuario.nome })
+    .then(function(res) { if (res && res.erro) { alert('Erro: ' + res.erro); return; } carregarChamados(); })
+    .catch(function() { alert('Falha ao reabrir. Tente novamente.'); });
 }
 function enviarChamado() {
   var assunto = document.getElementById('ch-assunto').value.trim();
@@ -1344,7 +1356,7 @@ function enviarChamado() {
     .then(function(res) {
       btn.disabled = false; btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
       if (!res || res.erro) { erroEl.textContent = res ? res.erro : 'Erro ao enviar.'; erroEl.classList.remove('oculto'); return; }
-      msgEl.textContent = '✅ Chamado aberto! Você será contatado em até 48h (ou antes, se for urgência).'; msgEl.classList.remove('oculto');
+      msgEl.textContent = '✅ Chamado ' + res.numero + ' aberto! Você será contatado em até 48h (ou antes, se for urgência).'; msgEl.classList.remove('oculto');
       document.getElementById('ch-assunto').value = '';
       document.getElementById('ch-descricao').value = '';
       carregarChamados();
@@ -1720,4 +1732,3 @@ document.addEventListener('keydown',function(e){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 </body>
 </html>
-
