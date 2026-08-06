@@ -734,10 +734,18 @@ var _qrScanner = null, _qrProcessing = false, _cbCounter = 0;
 
 function api(action, params) {
   return new Promise(function(resolve, reject) {
+    // Injeta o token de sessão automaticamente em toda chamada (exceto login
+    // e esqueci-senha, que ainda não têm sessão) — é isso que faz o backend
+    // saber de verdade quem está pedindo, em vez de confiar no que o
+    // navegador afirma sobre si mesmo.
+    var payload = params || {};
+    if (action !== 'fazerLogin' && action !== 'redefinirSenhaEsqueci' && action !== 'getApartamentos') {
+      payload = Object.assign({}, payload, { sessionToken: App.usuario ? App.usuario.sessionToken : null });
+    }
     var cbName = '_gasCb' + (++_cbCounter);
     var timeout = setTimeout(function() { delete window[cbName]; var s=document.getElementById(cbName); if(s)s.remove(); reject(new Error('Timeout')); }, 90000);
     window[cbName] = function(data) { clearTimeout(timeout); delete window[cbName]; var s=document.getElementById(cbName); if(s)s.remove(); resolve(data); };
-    var url = GAS_URL + '?action=' + encodeURIComponent(action) + '&payload=' + encodeURIComponent(JSON.stringify(params||{})) + '&callback=' + cbName;
+    var url = GAS_URL + '?action=' + encodeURIComponent(action) + '&payload=' + encodeURIComponent(JSON.stringify(payload)) + '&callback=' + cbName;
     var script = document.createElement('script');
     script.id = cbName; script.src = url;
     script.onerror = function() { clearTimeout(timeout); delete window[cbName]; script.remove(); reject(new Error('Falha ao contactar o servidor')); };
@@ -808,7 +816,10 @@ function efetuarLogin() {
     .catch(function(err){btn.disabled=false;btn.querySelector('.btn-txt').classList.remove('oculto');btn.querySelector('.btn-load').classList.add('oculto');erroEl.textContent='Erro: '+(err?err.message:'tente novamente');erroEl.classList.remove('oculto');});
 }
 
-function fazerLogout(){pararScanner();App.usuario=null;document.getElementById('login-senha').value='';document.getElementById('login-erro').classList.add('oculto');carregarCredenciais();mostrarTela('tela-login');}
+function fazerLogout(){
+  if (App.usuario && App.usuario.sessionToken) { api('encerrarSessao', {}).catch(function(){}); }
+  pararScanner();App.usuario=null;document.getElementById('login-senha').value='';document.getElementById('login-erro').classList.add('oculto');carregarCredenciais();mostrarTela('tela-login');
+}
 
 // ══ DASHBOARD (MORADOR) ══════════════════════════════════════
 function entrarDashboard() {
@@ -825,7 +836,7 @@ function entrarDashboard() {
 function carregarConsumos() {
   var el = document.getElementById('consumos-lista');
   el.innerHTML = '<div class="hist-vazio">Carregando...</div>';
-  api('obterMeusConsumos', { email: App.usuario.email })
+  api('obterMeusConsumos', {})
     .then(function(res) { renderConsumosResultado('consumos-lista', res); })
     .catch(function() { el.innerHTML = '<div class="hist-vazio">Falha ao carregar.</div>'; });
 }
@@ -947,7 +958,7 @@ function mudarSenha(){
   if(nova!==conf){msgEl.textContent='As senhas não coincidem.';return;}
   if(nova.length<6){msgEl.textContent='Mínimo 6 caracteres.';return;}
   msgEl.className='';msgEl.textContent='Aguarde...';
-  api('alterarSenha',{email:email,senhaAtual:atual,novaSenha:nova})
+  api('alterarSenha',{senhaAtual:atual,novaSenha:nova})
     .then(function(res){
       if(res.erro){msgEl.className='msg-erro';msgEl.textContent=res.erro;return;}
       msgEl.className='msg-ok';msgEl.textContent='✅ Senha alterada!';
@@ -1127,7 +1138,7 @@ function abrirRelatorio(contexto) {
 
   var chamada = contexto === 'admin'
     ? api('listarMesesRelatorioAdmin', {})
-    : api('listarMesesRelatorioMorador', { email: App.usuario.email });
+    : api('listarMesesRelatorioMorador', {});
 
   chamada.then(function(res) {
     var el = document.getElementById('rel-meses-lista');
@@ -1174,7 +1185,7 @@ function enviarRelatorioEmail() {
     chamada = api('enviarRelatorioAdmin', { mesesSortKeys: meses, emails: emails, modo: _formatoRelatorioSelecionado });
   } else {
     btn.disabled = true; btn.querySelector('.btn-txt').classList.add('oculto'); btn.querySelector('.btn-load').classList.remove('oculto');
-    chamada = api('enviarRelatorioMorador', { email: App.usuario.email, mesesSortKeys: meses });
+    chamada = api('enviarRelatorioMorador', { mesesSortKeys: meses });
   }
 
   chamada.then(function(res) {
@@ -1340,7 +1351,7 @@ function carregarChamados() {
 }
 function reabrirChamado(numero) {
   if (!confirm('Reabrir o chamado ' + numero + '?')) return;
-  api('reabrirChamadoSuporte', { numero: numero, quemReabriu: App.usuario.nome })
+  api('reabrirChamadoSuporte', { numero: numero })
     .then(function(res) { if (res && res.erro) { alert('Erro: ' + res.erro); return; } carregarChamados(); })
     .catch(function() { alert('Falha ao reabrir. Tente novamente.'); });
 }
@@ -1352,7 +1363,7 @@ function enviarChamado() {
   if (!assunto || !descricao) { erroEl.textContent = 'Preencha o assunto e a descrição.'; erroEl.classList.remove('oculto'); return; }
 
   btn.disabled = true; btn.querySelector('.btn-txt').classList.add('oculto'); btn.querySelector('.btn-load').classList.remove('oculto');
-  api('abrirChamadoSuporte', { nome: App.usuario.nome, email: App.usuario.email, assunto: assunto, descricao: descricao })
+  api('abrirChamadoSuporte', { assunto: assunto, descricao: descricao })
     .then(function(res) {
       btn.disabled = false; btn.querySelector('.btn-txt').classList.remove('oculto'); btn.querySelector('.btn-load').classList.add('oculto');
       if (!res || res.erro) { erroEl.textContent = res ? res.erro : 'Erro ao enviar.'; erroEl.classList.remove('oculto'); return; }
@@ -1491,7 +1502,7 @@ function enviarFotoAoServidor(base64) {
   fetch(GAS_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action: 'salvarFotoLeitura', vagaId: _vagaFotoPendente, data: _dataFotoPendente, imagemBase64: base64, idLeitura: _idLeituraPendente })
+    body: JSON.stringify({ action: 'salvarFotoLeitura', sessionToken: App.usuario ? App.usuario.sessionToken : null, vagaId: _vagaFotoPendente, data: _dataFotoPendente, imagemBase64: base64, idLeitura: _idLeituraPendente })
   })
   .then(function(r) { return r.json(); })
   .then(function(res) {
@@ -1669,7 +1680,7 @@ function mostrarResultadoVaga(res) {
       fetch(GAS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'salvarQRCodeImagem', apto: res.apto, numero: res.numero, imagemBase64: base64 })
+        body: JSON.stringify({ action: 'salvarQRCodeImagem', sessionToken: App.usuario ? App.usuario.sessionToken : null, apto: res.apto, numero: res.numero, imagemBase64: base64 })
       }).catch(function() { /* salvamento no Drive é um "bônus" - não trava o fluxo se falhar */ });
     };
     qrImg.src = qrDataUrl;
@@ -1732,3 +1743,4 @@ document.addEventListener('keydown',function(e){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 </body>
 </html>
+
